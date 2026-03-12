@@ -28,6 +28,22 @@ const { title, description = "Documentation packages for AI agents. Local, versi
           <img src="/logo-white.png" alt="mandex" class="h-7 light-hidden" />
         </a>
         <div class="flex items-center gap-2">
+          <!-- Theme toggle -->
+          <button
+            id="theme-toggle"
+            class="nav-icon-btn p-1.5 rounded transition-colors border"
+            style="color: var(--color-text-secondary); border-color: var(--color-border);"
+            title="Toggle theme"
+          >
+            <!-- Sun icon (shown in dark mode) -->
+            <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+              <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            <!-- Moon icon (shown in light mode) -->
+            <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </button>
           <!-- About - document icon -->
           <a
             href="/about"
@@ -71,7 +87,7 @@ const { title, description = "Documentation packages for AI agents. Local, versi
       <slot />
     </main>
 
-    <footer class="mt-24">
+    <footer class="mt-16">
       <div class="max-w-5xl mx-auto px-6 py-8 text-sm flex items-center justify-center gap-3" style="color: var(--color-text-tertiary);">
         <span class="flex-1 h-px" style="background-color: var(--color-border);"></span>
         <span class="flex items-center gap-1.5 shrink-0">
@@ -85,19 +101,66 @@ const { title, description = "Documentation packages for AI agents. Local, versi
       </div>
     </footer>
 
-    <style>
+    <style is:global>
+      /* Logo switching: default to light logo (black), swap in dark */
+      .dark-hidden { display: inline; }
+      .light-hidden { display: none; }
+
       @media (prefers-color-scheme: dark) {
-        .dark-hidden { display: none; }
-        .light-hidden { display: inline; }
+        :root:not([data-theme="light"]) .dark-hidden { display: none !important; }
+        :root:not([data-theme="light"]) .light-hidden { display: inline !important; }
       }
-      @media (prefers-color-scheme: light) {
-        .dark-hidden { display: inline; }
-        .light-hidden { display: none; }
-      }
+      [data-theme="dark"] .dark-hidden { display: none !important; }
+      [data-theme="dark"] .light-hidden { display: inline !important; }
+      [data-theme="light"] .dark-hidden { display: inline !important; }
+      [data-theme="light"] .light-hidden { display: none !important; }
+
       .nav-icon-btn:hover {
         background-color: var(--color-background-secondary);
         color: var(--color-text);
       }
     </style>
+
+    <script is:inline>
+      (function() {
+        const saved = localStorage.getItem('theme');
+        if (saved) {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+
+        function isDark() {
+          const theme = document.documentElement.getAttribute('data-theme');
+          if (theme === 'dark') return true;
+          if (theme === 'light') return false;
+          return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+
+        function updateIcons() {
+          const dark = isDark();
+          const sun = document.getElementById('icon-sun');
+          const moon = document.getElementById('icon-moon');
+          if (sun && moon) {
+            sun.style.display = dark ? 'block' : 'none';
+            moon.style.display = dark ? 'none' : 'block';
+          }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+          updateIcons();
+
+          document.getElementById('theme-toggle')?.addEventListener('click', function() {
+            const dark = isDark();
+            const next = dark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateIcons();
+            // Notify terminal to restart with new colors
+            window.dispatchEvent(new CustomEvent('theme-changed'));
+          });
+        });
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateIcons);
+      })();
+    </script>
   </body>
 </html>
