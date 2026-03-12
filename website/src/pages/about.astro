@@ -1,0 +1,13 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { marked } from 'marked';
+import rawContent from '../content/about.md?raw';
+
+const html = await marked(rawContent);
+---
+
+<Layout title="About - mandex" description="Why documentation should be distributed like packages, not served like APIs.">
+  <article class="max-w-3xl mx-auto px-6 py-16">
+    <div class="prose-mandex" set:html={html} />
+  </article>
+</Layout>

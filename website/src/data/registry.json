@@ -1,0 +1,56 @@
+[
+  {
+    "name": "react",
+    "version": "19.1.0",
+    "ecosystem": "npm",
+    "description": "A JavaScript library for building user interfaces",
+    "size": "2.1 MB",
+    "entries": 342,
+    "homepage": "https://react.dev"
+  },
+  {
+    "name": "nextjs",
+    "version": "14.2.0",
+    "ecosystem": "npm",
+    "description": "The React framework for the web",
+    "size": "4.7 MB",
+    "entries": 891,
+    "homepage": "https://nextjs.org"
+  },
+  {
+    "name": "fastapi",
+    "version": "0.115.0",
+    "ecosystem": "pip",
+    "description": "Modern, fast web framework for building APIs with Python",
+    "size": "1.4 MB",
+    "entries": 287,
+    "homepage": "https://fastapi.tiangolo.com"
+  },
+  {
+    "name": "pytorch",
+    "version": "2.3.0",
+    "ecosystem": "pip",
+    "description": "Tensors and dynamic neural networks in Python",
+    "size": "8.2 MB",
+    "entries": 2847,
+    "homepage": "https://pytorch.org"
+  },
+  {
+    "name": "tailwindcss",
+    "version": "4.1.0",
+    "ecosystem": "npm",
+    "description": "A utility-first CSS framework",
+    "size": "1.8 MB",
+    "entries": 624,
+    "homepage": "https://tailwindcss.com"
+  },
+  {
+    "name": "django",
+    "version": "5.1.0",
+    "ecosystem": "pip",
+    "description": "The web framework for perfectionists with deadlines",
+    "size": "5.1 MB",
+    "entries": 1543,
+    "homepage": "https://djangoproject.com"
+  }
+]

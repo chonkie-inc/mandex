@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+:root {
+  --color-background: #fff;
+  --color-background-secondary: #f4f4f5;
+  --color-border: #e4e4e7;
+  --color-text: #18181b;
+  --color-text-secondary: #52525b;
+  --color-text-tertiary: #a1a1aa;
+  --color-code-bg: #f4f4f5;
+  --color-code-text: #0f766e;
+  --color-pre-bg: #fafafa;
+  --color-pre-border: #e4e4e7;
+  --color-accent: #059669;
+  --color-accent-hover: #047857;
+  --color-alpha-background: rgba(255, 255, 255, 0.9);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0a0a0a;
+    --color-background-secondary: #18181b;
+    --color-border: #27272a;
+    --color-text: #fafafa;
+    --color-text-secondary: #a1a1aa;
+    --color-text-tertiary: #71717a;
+    --color-code-bg: #18181b;
+    --color-code-text: #a5f3fc;
+    --color-pre-bg: #18181b;
+    --color-pre-border: #27272a;
+    --color-accent: #34d399;
+    --color-accent-hover: #6ee7b7;
+    --color-alpha-background: rgba(10, 10, 10, 0.9);
+  }
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+code, pre {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Prose styles for the blog post */
+.prose-mandex {
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  font-size: 1rem;
+}
+
+.prose-mandex h1 {
+  color: var(--color-text);
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.prose-mandex h2 {
+  color: var(--color-text);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.015em;
+}
+
+.prose-mandex h3 {
+  color: var(--color-text);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-mandex p {
+  margin-bottom: 1.25rem;
+}
+
+.prose-mandex a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-mandex a:hover {
+  color: var(--color-accent-hover);
+}
+
+.prose-mandex strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.prose-mandex code {
+  color: var(--color-code-text);
+  background: var(--color-code-bg);
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.prose-mandex pre {
+  background: var(--color-pre-bg);
+  border: 1px solid var(--color-pre-border);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+}
+
+.prose-mandex pre code {
+  background: none;
+  padding: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.prose-mandex ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.prose-mandex ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.prose-mandex li {
+  margin-bottom: 0.5rem;
+}
+
+.prose-mandex blockquote {
+  border-left: 3px solid var(--color-border);
+  padding-left: 1rem;
+  color: var(--color-text-tertiary);
+  margin-bottom: 1.25rem;
+  font-style: italic;
+}
+
+.prose-mandex hr {
+  border-color: var(--color-border);
+  margin: 2rem 0;
+}
