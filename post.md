@@ -14,7 +14,7 @@ The simplest approach. The agent searches the web for documentation, gets URLs, 
 
 ```
 Agent: I need to check the API for FastAPI's Depends function.
-> web_search("FastAPI Depends injection")
+> web_search("FastAPI Depends injection")   
 > fetch_url("https://fastapi.tiangolo.com/tutorial/dependencies/")
   ⚠ Blocked by Cloudflare bot detection
 > fetch_url("https://stackoverflow.com/questions/...")
@@ -48,7 +48,7 @@ llms.txt is the right idea — give agents content in a format they can use — 
 
 ### Cloud MCP documentation servers
 
-Services like Context7 and Docfork pre-index open source library documentation and serve it via MCP (Model Context Protocol). Instead of each agent independently scraping the web, agents query a centralized server that returns structured, relevant documentation snippets. Context7 has over 42,000 GitHub stars and has become one of the most widely-installed MCP servers in the ecosystem. Pre-indexed documentation with structured search is a meaningful improvement over web fetching or full-text dumps.
+Services like Context7 and Docfork pre-index open source library documentation and serve it via MCP (Model Context Protocol). Instead of each agent independently scraping the web, agents query a centralized server that returns structured, relevant documentation snippets. Context7 alone has over 42,000 GitHub stars — pre-indexed documentation with structured search clearly resonated.
 
 ```
 Agent: I need to look up Next.js middleware API.
@@ -78,9 +78,9 @@ All three approaches treat documentation as something to be fetched on demand �
 
 But documentation isn't dynamic content. It doesn't change based on who's reading it or when they ask. A library's docs are written once per release and read by thousands of developers between releases. This is the same access pattern as software packages: authored once per version, distributed widely, read many times, never modified in place.
 
-Software packages aren't served through request-response APIs. You don't query npm on every `import` statement. You install packages locally and they're available immediately — fast, offline, versioned. The distribution infrastructure is a registry backed by a CDN. The compute cost of serving a package is the cost of an HTTP GET to an edge node. Documentation should work the same way: build once, compress, upload to a CDN, download once per consumer, query locally forever.
+Software packages aren't served through request-response APIs. You don't query npm on every `import` statement. You install packages locally and they're available immediately — fast, offline, versioned. Documentation should work the same way.
 
-Mandex is a package registry for documentation. Library authors build searchable documentation packages from their existing docs. The packages are compressed and distributed through a CDN. Developers download them once and query them locally. The CLI reads project dependency files and pulls matching documentation packages automatically.
+Mandex is a package registry for documentation. Library authors build searchable documentation packages from their existing docs. The packages are compressed and distributed through a CDN. Developers download them once and query them locally.
 
 ```bash
 mx pull pytorch@2.3.0
@@ -91,6 +91,22 @@ mx search pytorch "attention mechanism"
 After the initial download, all queries are local. There's no network call, no server process, no rate limit, no API key. The same query can run a thousand times in a session at the same cost: zero.
 
 Versioning is solved by the package model itself. `mx pull nextjs@14.0.0` downloads a package containing only the Next.js 14 documentation. The search index has no v16 content to confuse results. There's no version routing, no query-time disambiguation, no dependence on the agent correctly passing version context. The right version was selected at download time.
+
+The CLI outputs to stdout — it can be piped, redirected, or read by an agent through tool invocation. Mandex works with any agent that can execute shell commands — Claude Code, Cursor, Copilot, or a custom agent framework. `mx serve` starts an MCP server for environments where that protocol is preferred, but MCP is a transport layer on top, not a requirement.
+
+## For library authors
+
+The build step works on documentation as it already exists. There's no custom format, no required frontmatter schema, no migration from current tooling.
+
+```bash
+mx build ./docs --name pytorch --version 2.3.0
+```
+
+The command walks the target directory, finds every markdown and MDX file, and creates one database entry per file. The first `#` heading becomes the entry name; the full content becomes the entry body. The FTS5 search index is built over both columns. This is compatible with documentation source formats already in widespread use — Docusaurus, MkDocs, Mintlify, plain README collections. `mx build` operates on the common denominator.
+
+The cost of publishing is running one command against a directory that already exists. There's no docs rewrite, no format adoption, no workflow change. Publishing can be added to the release CI pipeline alongside the npm publish or PyPI upload authors already run. In return, every developer using mandex gets the author's documentation — at the correct version, searchable, offline — without the author operating any infrastructure. The CDN handles distribution. The CLI handles search. The author's only job is the one they already have: writing good docs.
+
+With scraping-based tools, the library author has no say in how their documentation is indexed, chunked, or presented to agents. Poorly chunked docs produce poor search results, and the author can't fix it. With mandex, the author controls the source material and can structure it for the best possible agent experience — or just ship their existing docs and let the format do its job.
 
 ## Architecture
 
@@ -118,7 +134,7 @@ CREATE VIRTUAL TABLE entries_fts USING fts5(
 
 Two columns. `name` is derived from the first heading in the source markdown file, or the filename if no heading exists. `content` is the full markdown text.
 
-There's no `params` column, no `signature` column, no `returns` or `tags` or `kind`. This is intentional. Documentation already contains all of that information — function signatures, parameter lists, type annotations, examples, usage notes — in markdown that LLMs parse without difficulty. Imposing a structured schema on top would require that schema to work across every kind of library documentation: PyTorch's API references, Next.js's conceptual guides, Tailwind's utility class listings, Django's tutorial-style docs. No field set fits all of them. Markdown is the universal format that already does.
+There's no `params` column, no `signature` column, no `returns` or `tags` or `kind`. This is intentional. Documentation already contains all of that information — function signatures, parameter lists, type annotations, examples, usage notes — in markdown that LLMs parse without difficulty. Imposing a structured schema on top would require that schema to work across every kind of library documentation: PyTorch's API references, Next.js's conceptual guides, Tailwind's utility class listings, Django's tutorial-style docs. No field set fits all of them. Markdown handles this naturally.
 
 The CLI controls display. When listing search results, it shows the entry name and the first N characters of content — enough for the agent to decide which entry to read in full. When an agent requests a specific entry, the CLI returns the complete content. The truncation is a display concern handled at query time, not a schema concern baked into the data.
 
@@ -154,49 +170,6 @@ $ mx sync
 
 When `mx search` runs inside a project directory, it reads the manifest and queries only the packages relevant to that project. You might have 50 packages in your global cache across all your projects, but a search in your Next.js project only hits the 14 databases listed in that project's manifest. The dependency file is the source of truth for which documentation is in scope.
 
-## Building packages from existing docs
-
-The build step works on documentation as it already exists. There is no custom format, no required frontmatter schema, no migration from current tooling.
-
-```bash
-mx build ./docs --name pytorch --version 2.3.0
-```
-
-The command walks the target directory, finds every markdown and MDX file, and creates one database entry per file. The first `#` heading in each file becomes the entry `name`. If no heading exists, the filename is used. The file's full content becomes the entry `content`. The FTS5 index is built over both columns.
-
-This is compatible with the documentation source formats already in widespread use. Docusaurus pages, MkDocs sources, Mintlify files, Sphinx markdown, plain README collections — all of these are markdown files in a directory. `mx build` operates on the common denominator.
-
-The cost of publishing a mandex package is running one command against a directory that already exists. There's no docs rewrite, no format adoption, no workflow change for the library maintainer. This is a deliberate tradeoff: a richer schema (structured parameters, typed signatures, categorized entries) would produce more precise search results, but it would also create an adoption barrier. The current design optimizes for the case where the author's cost is near zero.
-
-## Interface design
-
-### CLI-first, not MCP-locked
-
-Mandex is a CLI tool that can optionally run as an MCP server, not an MCP server that happens to have a CLI.
-
-```bash
-mx search pytorch "linear layer"        # search within a specific package
-mx search "authentication middleware"    # search across project packages
-mx show nextjs useRouter                 # display a specific entry
-```
-
-The output goes to stdout. It can be piped, redirected, captured by a shell command, or read by an agent through tool invocation. This means mandex works with any agent that can execute shell commands — Claude Code, Cursor, Copilot, or a custom agent framework. It's not coupled to MCP-compatible clients specifically.
-
-`mx serve` starts an MCP server for environments where that protocol is preferred. But MCP is a transport layer on top, not a requirement.
-
-### Package name mapping
-
-The mapping between ecosystem package names and mandex package names is maintained in the registry metadata. `torch` in pip maps to `pytorch` in mandex. `next` in npm maps to `nextjs`. Where the names match directly, no explicit mapping is needed.
-
-## For documentation authors
-
-Mandex gives library maintainers a distribution channel into the agent ecosystem that costs them almost nothing to support.
-
-Library authors already write and maintain documentation. They already publish it to a docs site. Mandex doesn't ask them to do that differently. The build step takes their existing markdown source and compiles it into a searchable package. Publishing is a single command that can be added to the release CI pipeline alongside the npm publish or PyPI upload they already run.
-
-In return, every developer using mandex gets the author's documentation — at the correct version, searchable, offline — without the author operating any infrastructure. No MCP server to run, no API to maintain, no rate limits to configure, no hosting costs to absorb. The CDN handles distribution. The CLI handles search. The author's only job is the one they already have: writing good docs.
-
-There's also a quality control benefit. With scraping-based tools, the library author has no say in how their documentation is indexed, chunked, or presented to agents. Poorly chunked docs produce poor search results, and the author can't fix it. With mandex, the author controls the source material and can structure it for the best possible agent experience — or just ship their existing docs and let the format do its job.
 
 ## Open questions
 
@@ -218,24 +191,20 @@ A library like PyTorch has thousands of API entries. The resulting `.db` file mi
 
 Mandex doesn't solve the problem of documentation going stale if authors don't publish updated packages. It moves the responsibility to the library maintainer, which is where it belongs — they're already responsible for keeping their docs current. The build-and-publish step can be integrated into CI/CD, so publishing a new mandex package is part of the release process rather than a separate manual step.
 
-## Implementation
+## Getting started
 
-Mandex is written in Rust. The CLI binary is called `mx`. The source is open.
+Mandex is written in Rust. The CLI is a single static binary called `mx`.
 
 ```bash
-# install
 curl -fsSL https://mandex.dev/install.sh | sh
 
-# pull documentation for your dependencies
-mx pull pytorch@2.3.0
-mx pull fastapi
-
-# search locally
-mx search "custom loss function"
-
-# or auto-detect from project dependencies
 cd your-project
 mx sync
+mx search nextjs "middleware"
 ```
 
-The format is SQLite. The packages are portable. The registry is open. Everything works offline after the initial download.
+The format is SQLite. The packages are portable. The source is open. Everything works offline after the initial download.
+
+---
+
+Agents need documentation to write correct code. The documentation exists. The missing piece was never the content — it was the distribution model. Package it, version it, and distribute it through infrastructure that scales to zero marginal cost. Then let agents query it locally, as many times as they need, without asking anyone's permission.
