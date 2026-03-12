@@ -2,363 +2,232 @@
 
 ## What is Mandex?
 
-Mandex (manual + index) is a local-first documentation index registry and CLI (`mx`). It lets library authors publish compressed, searchable documentation packages to a CDN, and lets developers (and their AI agents) download and query them locally — offline, with zero rate limits, in sub-millisecond time.
+Mandex (manual + index) is a package registry for documentation. Library authors build searchable documentation packages from their existing markdown docs. The packages are zstd-compressed SQLite databases with FTS5 full-text search, distributed via CDN. Developers download them once and query them locally — offline, with zero rate limits, in sub-millisecond time.
+
+The CLI is called `mx`. It's written in Rust. Single static binary, no runtime dependencies.
 
 ## The Problem
 
-AI coding agents hallucinate when they don't have up-to-date documentation. The current solutions all have problems:
+AI coding agents need documentation to write correct code. Without it, they fall back to stale training data — deprecated APIs, outdated patterns, code that doesn't compile. The documentation exists and it's freely available. The problem is getting it into the agent's context at the right time, in the right version, efficiently.
 
-1. **Training data** — stale by months/years, agents confidently suggest deprecated APIs
-2. **Cloud MCP servers (Context7, Docfork)** — rate-limited, require network calls for every query, single point of failure mid-session
-3. **Local MCP servers (@neuledge/context)** — better, but still MCP overhead per query, requires Node.js runtime, builds docs from git repos at install time
-4. **Dash/Zeal docsets** — human-focused (full HTML), not optimized for agent consumption, no community registry model
+### Current approaches and their failures
 
-### Why not just use @neuledge/context?
+**Direct web fetching.** Agents search the web, fetch pages. 5-10 HTTP requests per lookup, 95% noise by token count (nav bars, sidebars, cookie banners). Bot detection blocks requests. The aggregate traffic from agents looks like a DDoS. A feedback loop: tighter bot detection → more failures → more retries.
 
-It's the closest thing to what we want, but:
+**llms.txt.** Sites serve `/llms.txt` or `/llms-full.txt` with clean LLM-optimized content. Solves the HTML noise problem but: no search index (full dump, 428k tokens for Tailwind), no versioning (`/llms.txt` serves whatever version is deployed), still requires a network request per lookup.
 
-- **TypeScript/Node dependency** — heavy runtime requirement for what should be a simple file download + search
-- **MCP-only interface** — docs are only accessible through MCP, not as a standalone CLI or library
-- **Build-from-source model** — you point it at a git repo and it builds the index locally. This means every user repeats the same work, and quality depends on the repo's markdown structure
-- **No author-curated packages** — library authors don't control how their docs appear. The indexer scrapes markdown and hopes for the best
-- **59 stars, 2 contributors** — early stage, unclear if it will gain traction
+**Cloud MCP servers (Context7, Docfork).** Pre-indexed docs served via MCP. Good experience when it works — structured, relevant results. But: per-query pricing on free open source docs, rate limits (Context7 cut free tier by 92% in Jan 2026), infrastructure cost scales linearly with queries, version routing across N copies of mostly-identical content fails on BM25 disambiguation.
 
-### Why not Docfork or Context7?
+**Local MCP servers (@neuledge/context).** Local SQLite + FTS5 indexed from git repos. Right architecture, but: requires Node.js, MCP-only interface, every user rebuilds the same index, no author control over how docs appear.
 
-- Both are **cloud-first** — they own the infra, you pay per query
-- Context7 cut their free tier by 92% (6,000 → 500 req/month) in Jan 2026, breaking workflows overnight
-- Docfork is essentially a Context7 clone with "Cabinets" (curated stacks)
-- Fundamental model flaw: charging per-query for documentation access doesn't scale with how agents work (10s-100s of lookups per session)
+### The core insight
 
-## What Makes Mandex Different
-
-### 1. Author-first registry
-
-Library authors publish their own doc packages, controlling quality, structure, and versioning. Think crates.io or npm, but for documentation. This is the key differentiator — no scraping, no hoping the markdown is well-structured. Authors know their API surface best.
-
-### 2. Rust CLI, no runtime dependency
-
-Single static binary. No Node.js, no Python, no JVM. Download and run. Fast startup, minimal resource usage.
-
-### 3. CDN-distributed, not server-distributed
-
-Doc packages are pre-built, compressed, and hosted on Cloudflare R2. Downloading a package is a single HTTP GET — same as downloading a binary release. No build step, no git clone, no indexing. The CDN scales infinitely at near-zero marginal cost.
-
-### 4. Not MCP-locked
-
-`mx search` works from any terminal. It can be piped, scripted, embedded. MCP integration is a layer on top, not the only interface. This means:
-- Humans can use it directly
-- Agents can use it via tool definitions, MCP, or just shell commands
-- CI/CD can query docs programmatically
-
-### 5. Project-aware auto-sync
-
-`mx sync` reads your project's dependency files (package.json, requirements.txt, Cargo.toml, pyproject.toml, go.mod, etc.) and downloads matching doc packages. Zero-config for the common case.
+Documentation has the same access pattern as software packages: authored once per version, distributed widely, read many times, never modified in place. The distribution model should match. You don't query npm on every `import`. You install packages locally.
 
 ## Architecture
 
-### Doc Package Format
+### Package format
 
-A mandex package is a **zstd-compressed SQLite database** with FTS5 full-text search.
+A mandex package is a zstd-compressed SQLite database with FTS5 full-text search.
 
 ```
-pytorch@2.3.0.mandex   (the compressed file on CDN)
-  └── pytorch@2.3.0.db  (SQLite database after decompression)
+pytorch@2.3.0.mandex   (compressed, on CDN)
+  └── pytorch@2.3.0.db  (SQLite database, local after download)
 ```
 
-#### SQLite Schema
+### Schema
+
+The schema is deliberately minimal:
 
 ```sql
--- Package metadata
-CREATE TABLE metadata (
-    key   TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-);
--- Populated with: name, version, description, homepage, repository, license, authors
-
--- Documentation entries
 CREATE TABLE entries (
-    id        INTEGER PRIMARY KEY AUTOINCREMENT,
-    name      TEXT NOT NULL,          -- e.g. "torch.nn.Linear"
-    kind      TEXT NOT NULL,          -- "class", "function", "method", "module", "guide", "example"
-    signature TEXT,                   -- e.g. "torch.nn.Linear(in_features, out_features, bias=True)"
-    brief     TEXT NOT NULL,          -- one-line description
-    content   TEXT NOT NULL,          -- full documentation (markdown)
-    params    TEXT,                   -- JSON array of {name, type, desc}
-    returns   TEXT,                   -- return type/description
-    examples  TEXT,                   -- code examples (markdown)
-    see_also  TEXT,                   -- JSON array of related entry names
-    tags      TEXT                    -- comma-separated tags for filtering
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    name    TEXT NOT NULL,
+    content TEXT NOT NULL
 );
 
--- Full-text search index
 CREATE VIRTUAL TABLE entries_fts USING fts5(
     name,
-    brief,
     content,
-    tags,
     content=entries,
     content_rowid=id,
     tokenize='porter unicode61'
 );
 ```
 
-#### Why this schema?
+Two columns. `name` is the first `#` heading in the source markdown file (or the filename). `content` is the full markdown text.
 
-- **`name` + `kind` + `signature`** — enough for an agent to identify and use an API without reading the full content
-- **`brief`** — one-line summary, ideal for search result listings (low token cost)
-- **`content`** — full docs when the agent needs depth
-- **`params`/`returns`** — structured data for function/method entries, agents can use these directly
-- **`examples`** — separated from content so agents can request "just show me an example"
-- **FTS5 with porter stemming** — handles "tokenizer" matching "tokenize", "linear" matching "linearity", etc.
-- **BM25 ranking** — built into FTS5, gives relevance-ranked results for free
+No `params`, `signature`, `returns`, `tags`, or `kind` columns. Documentation already contains all of that in markdown that LLMs parse naturally. A structured schema would need to work across PyTorch API references, Next.js conceptual guides, Tailwind utility listings, and Django tutorials. No field set fits all of them. Markdown does.
 
-### CDN Layout
+The CLI controls display — search results show the entry name and first N characters of content. Full content is returned when a specific entry is requested. Truncation is a display concern, not a schema concern.
+
+### Why SQLite?
+
+The package format must serve three roles: storage container, search index, and query engine. SQLite does all three in a single file with no server process.
+
+FTS5 provides BM25 relevance ranking, porter stemming, prefix queries, phrase matching, and boolean operators — built into SQLite. A `.db` file is queryable with any SQLite client in any language. If mandex ceased to exist, every published package would remain fully functional. SQLite has backwards compatibility commitments through 2050.
+
+The alternative (compressed JSON + separate search index like Tantivy) would require two artifacts per package with format coupling, and every client would need a compatible search engine version.
+
+### Compression
+
+Zstd. Documentation is highly compressible — 5-10x ratios on structured markdown. A 20MB package ships as 2-4MB. Zstd decompresses at 1-2 GB/s. The CLI decompresses once on download; no per-query cost.
+
+### CDN distribution
+
+Packages are hosted on Cloudflare R2 (S3-compatible, zero egress fees).
 
 ```
 cdn.mandex.dev/v1/registry.json                    # global package listing
 cdn.mandex.dev/v1/{package}/meta.json               # package metadata + version list
 cdn.mandex.dev/v1/{package}/{version}.mandex         # compressed SQLite db
-cdn.mandex.dev/v1/{package}/{version}.sha256          # checksum
+cdn.mandex.dev/v1/{package}/{version}.sha256         # checksum
 ```
 
-Hosted on Cloudflare R2 (S3-compatible, zero egress fees).
+No application server, no per-request computation, no index lookup. Serving a package to one developer costs the same as serving it to a million. This is the architectural decision that avoids rate limits entirely. Mandex packages are immutable artifacts — the distribution model is identical to binary releases behind a CDN.
 
-`registry.json`:
-```json
-{
-  "packages": {
-    "pytorch": {
-      "latest": "2.3.0",
-      "description": "PyTorch deep learning framework",
-      "ecosystem": "pip"
-    },
-    "nextjs": {
-      "latest": "16.0.0",
-      "description": "The React framework",
-      "ecosystem": "npm"
-    }
-  }
-}
-```
-
-`meta.json`:
-```json
-{
-  "name": "pytorch",
-  "description": "PyTorch deep learning framework",
-  "ecosystem": "pip",
-  "package_name": "torch",
-  "homepage": "https://pytorch.org",
-  "repository": "https://github.com/pytorch/pytorch",
-  "versions": [
-    {
-      "version": "2.3.0",
-      "published": "2026-03-01T00:00:00Z",
-      "size_bytes": 524288,
-      "entry_count": 1847,
-      "sha256": "abc123..."
-    }
-  ]
-}
-```
-
-### Local Storage
+### Local storage
 
 ```
 ~/.mandex/
 ├── config.toml                  # user configuration
-├── registry.json                # cached registry index
-├── packages/
+├── cache/                       # global package cache (shared across projects)
 │   ├── pytorch/
-│   │   └── 2.3.0.db            # decompressed, ready to query
+│   │   └── 2.3.0.db
 │   ├── nextjs/
-│   │   └── 16.0.0.db
+│   │   └── 14.2.0.db
 │   └── ...
-└── mappings.toml                # ecosystem package name → mandex package name
+└── registry.json                # cached registry index
 ```
 
-`mappings.toml` solves the naming problem:
-```toml
-[pip]
-torch = "pytorch"
-beautifulsoup4 = "beautifulsoup"
-scikit-learn = "sklearn"
+Packages are stored in a global cache, shared across all projects. If two projects use `react@19.1.0`, the package is downloaded once. Same model as pnpm's content-addressable store or cargo's registry cache.
 
-[npm]
-next = "nextjs"
-"@anthropic-ai/sdk" = "anthropic-sdk"
+Per-project scoping comes from `mx sync`, which writes a project-local manifest:
+
+```
+your-project/
+├── .mandex/
+│   └── manifest.json            # packages + versions for this project
+├── package.json
+└── ...
 ```
 
-### CLI Interface
+When `mx search` runs inside a project, it reads the manifest and queries only the relevant packages. 50 packages in global cache, but a search in your Next.js project only hits the 14 listed in that project's manifest.
+
+### Package name mapping
+
+The `mx sync` command maps ecosystem dependency names to mandex package names:
+
+1. Check registry metadata — each mandex package declares which ecosystem packages it documents (e.g., `torch` in pip → `pytorch` in mandex)
+2. Try exact name match — `requests` in pip → `requests` in mandex
+3. Fail gracefully — skip packages with no matching docs
+
+## CLI interface
 
 ```bash
+# Install
+curl -fsSL https://mandex.dev/install.sh | sh
+
 # Package management
-mx pull pytorch                    # download latest pytorch docs
 mx pull pytorch@2.3.0             # download specific version
-mx sync                            # auto-detect project deps, download matching docs
+mx pull pytorch                    # download latest
+mx sync                            # read project deps, download matching docs
 mx list                            # list installed packages
 mx remove pytorch                  # remove a package
-mx update                          # update all packages to latest
+mx update                          # update all to latest
 
 # Search & query
 mx search "linear layer"           # search across all installed packages
 mx search pytorch "nn.Linear"      # search within a specific package
-mx show pytorch torch.nn.Linear    # show full docs for a specific entry
-mx show --brief pytorch torch.nn.Linear  # just the signature + one-liner
+mx show nextjs useRouter           # display a specific entry
 
-# Publishing (for authors)
-mx login                           # authenticate with mandex registry
-mx publish my-package.mandex       # publish a package
-mx build ./docs-dir                # build a .mandex package from source docs
+# Publishing
+mx build ./docs --name pytorch --version 2.3.0   # build from existing docs
+mx publish                         # upload to registry
+
+# MCP server mode
+mx serve                           # start MCP server for compatible clients
 
 # Info
 mx info pytorch                    # show package metadata
-mx doctor                          # check local state, connectivity
 ```
 
-### Package Name Mapping Strategy
+## Building packages
 
-The `mx sync` command needs to map dependency names to mandex package names:
+The build step works on documentation as it already exists. No custom format, no frontmatter, no migration.
 
-1. **Check local `mappings.toml`** cache first
-2. **Check `meta.json` `package_name` field** — each mandex package declares what ecosystem package(s) it documents
-3. **Try exact name match** — `requests` in pip → `requests` in mandex
-4. **Fail gracefully** — skip packages with no matching docs, don't error
-
-### Publishing Flow (for library authors)
-
-```
-1. Author creates documentation entries (JSON, TOML, or Markdown with frontmatter)
-2. `mx build ./docs/` compiles them into a .mandex SQLite package
-3. `mx publish` uploads to R2 via authenticated API
-4. CDN serves it globally within seconds
+```bash
+mx build ./docs --name pytorch --version 2.3.0
 ```
 
-#### Source format for authoring (one file per entry):
+Walks the directory, finds every markdown/MDX file, creates one entry per file. First `#` heading → entry name. Full content → entry body. FTS5 index built over both columns.
 
-```markdown
----
-name: torch.nn.Linear
-kind: class
-signature: "torch.nn.Linear(in_features, out_features, bias=True, device=None, dtype=None)"
-brief: "Applies an affine linear transformation to the input."
-tags: neural-network, layer, linear
-see_also: ["torch.nn.Bilinear", "torch.nn.LazyLinear"]
----
+Compatible with Docusaurus, MkDocs, Mintlify, Sphinx markdown, plain READMEs. `mx build` operates on the common denominator: markdown files in a directory.
 
-## Parameters
+Publishing can be added to release CI alongside `npm publish` or `twine upload`.
 
-- **in_features** (`int`): size of each input sample
-- **out_features** (`int`): size of each output sample
-- **bias** (`bool`): If `True`, adds a learnable bias. Default: `True`
+## Rust CLI
 
-## Shape
+Single static binary via Rust. No Node.js, Python, or JVM dependency.
 
-- Input: (*, H_in) where * means any number of dimensions and H_in = in_features
-- Output: (*, H_out) where H_out = out_features
+Startup latency matters — agents invoke the CLI repeatedly. Node.js CLI: ~200ms V8 overhead per invocation. Rust binary: under 5ms. Over 50 queries: 10 seconds vs 250 milliseconds.
 
-## Examples
+`rusqlite` with compile-time bundled SQLite + FTS5. No dependency on system SQLite version.
 
-```python
-m = nn.Linear(20, 30)
-input = torch.randn(128, 20)
-output = m(input)
-print(output.size())  # torch.Size([128, 30])
-`` `
-```
+## Open questions
 
-Or bulk JSON for programmatic generation:
+### Bootstrapping the registry
 
-```json
-[
-  {
-    "name": "torch.nn.Linear",
-    "kind": "class",
-    "signature": "torch.nn.Linear(in_features, out_features, bias=True)",
-    "brief": "Applies an affine linear transformation to the input.",
-    "content": "Full markdown documentation here...",
-    "params": [
-      {"name": "in_features", "type": "int", "desc": "size of each input sample"},
-      {"name": "out_features", "type": "int", "desc": "size of each output sample"}
-    ],
-    "examples": "```python\nm = nn.Linear(20, 30)\n```",
-    "see_also": ["torch.nn.Bilinear"]
-  }
-]
-```
+Cold start problem. Plan: seed with 20-30 packages for popular libraries (React, Next.js, PyTorch, FastAPI, Tailwind, Django, etc.) built from existing public docs. Make `mx build && mx publish` low-friction enough that maintainers add it to their release process.
 
-## Open Questions
+### Package ownership and trust
 
-### 1. How to bootstrap the registry?
+First-come-first-served namespace registration with verification path for official maintainers. Verified publisher badges for packages maintained by the library's own team. Mirrors npm/crates.io approach.
 
-The chicken-and-egg problem: developers won't install mandex without packages, authors won't publish without users. Options:
-- **Seed it ourselves** — manually curate 20-30 popular packages (React, Next.js, PyTorch, FastAPI, etc.) to prove the format works
-- **Auto-generate from existing docs** — scrape + LLM-summarize popular library docs as a starting point, then let authors take over
-- **Partner with library authors** — reach out to maintainers of popular libraries directly
+### Large libraries
 
-### 2. Authentication & trust for publishing
+PyTorch: thousands of entries, 10-50MB uncompressed. Likely acceptable as a one-time download. Sub-packages (`pytorch-core`, `pytorch-nn`) are possible but add dependency resolution complexity — only if demonstrated need.
 
-- Who can publish `pytorch`? The PyTorch team, or anyone?
-- Options: namespace ownership (like npm), verified publishers, or open-with-moderation
-- Probably start simple: first-come-first-served with abuse reporting, add verification later
+### Documentation freshness
 
-### 3. How to handle large libraries?
+Mandex doesn't solve stale docs if authors don't publish updates. Moves responsibility to where it belongs — the library maintainer. Build-and-publish integrates into CI/CD alongside existing release workflows.
 
-PyTorch has thousands of API entries. A single .db could be 10s of MB. Options:
-- **Sub-packages**: `pytorch-core`, `pytorch-nn`, `pytorch-optim`, etc.
-- **Lazy loading**: download a lightweight index first, fetch full entries on demand
-- **Just let it be big**: 10MB compressed is fine for a one-time download
+### Versioning granularity
 
-### 4. Versioning granularity
+Mirror library major.minor versions. Independent patch versions for doc-only fixes (e.g., `pytorch@2.3.0` docs might get a `2.3.0-1` doc patch).
 
-- One mandex package version per library version? (e.g., `pytorch@2.3.0` maps to PyTorch 2.3.0)
-- Or independent versioning? (e.g., mandex package v3 covers PyTorch 2.3.x)
-- Probably: mirror library major.minor, with independent patch for doc fixes
+## Why this might not work
 
-### 5. MCP integration
+1. **Cold start** — registries are hard to bootstrap without packages
+2. **Maintenance burden** — docs go stale if authors don't update
+3. **Competitors** — @neuledge/context has 100+ packages, Context7/Docfork have massive user bases
+4. **Context windows growing** — the problem may shrink as models get larger context and fresher training data
+5. **Format adoption** — yet another thing for authors to publish
 
-Should mandex ship an MCP server mode (`mx serve`) so it plugs into existing MCP clients? Probably yes, but as a secondary interface — the CLI-first approach is the core value.
+## Why this might work
 
-### 6. How does this compare to just putting docs in CLAUDE.md / .cursorrules?
+1. **Pain is real and growing** — Context7's rate limit cuts prove per-query pricing is broken for agent workflows
+2. **Local-first is correct** — docs are read-heavy, write-rare. CDN distribution matches the access pattern.
+3. **Zero-config for authors** — `mx build ./docs` works on existing markdown. No format adoption cost.
+4. **Rust binary** — installs in seconds, no runtime conflicts, fast startup
+5. **Registry flywheel** — seed packages → developers install → authors publish → more packages
+6. **Ecosystem-agnostic** — Python, JS, Rust, Go. One tool for all docs.
 
-Some teams paste relevant docs into their project's AI instruction files. This works for small, stable APIs but:
-- Doesn't scale (token limits, manual maintenance)
-- Not searchable (full dump into context)
-- Not versioned or shared
-- Mandex is the infra that feeds those files, not a replacement for them
+## v0.1 scope
 
-## Why This Might Not Work
-
-1. **Adoption chicken-and-egg** — registries are hard to bootstrap. Without packages, no users; without users, no authors.
-2. **Maintenance burden** — docs go stale. If authors don't update their mandex packages, the tool has the same staleness problem as training data.
-3. **"Good enough" competitors** — @neuledge/context already exists with 100+ packages. Context7/Docfork have massive user bases despite rate limits.
-4. **Agents might not need this** — as model context windows grow and training data freshness improves, the problem may shrink.
-5. **Format fragmentation** — yet another doc format that authors need to support alongside their existing docs.
-
-## Why This Might Work
-
-1. **The pain is real and growing** — Context7's rate limit cuts prove cloud doc services have a fundamental business model problem. Agents make too many queries for per-request pricing.
-2. **Local-first is the right architecture** — docs are read-heavy, write-rare. Download once, query forever. This is what CDNs are built for.
-3. **Author-curated > auto-scraped** — the quality ceiling is much higher when library authors control their doc packages.
-4. **Rust CLI is a distribution advantage** — single binary, no runtime. Works everywhere, installs in seconds.
-5. **The registry flywheel** — once popular packages exist, developers install mandex. Once developers exist, authors are motivated to publish. The hard part is the first 20 packages.
-6. **Ecosystem-agnostic** — works with Python, JS, Rust, Go, etc. One tool for all your docs.
-
-## v0.1 Scope
-
-Minimum viable product:
+MVP:
 - [ ] `mx pull <package>` — download from CDN
 - [ ] `mx search <query>` — FTS5 search across installed packages
 - [ ] `mx show <package> <entry>` — display full entry
 - [ ] `mx list` — list installed packages
 - [ ] `mx build <dir>` — build a .mandex from markdown source
-- [ ] 3-5 hand-curated seed packages (e.g., FastAPI, Next.js, Tailwind)
-- [ ] Basic CDN setup on Cloudflare R2
+- [ ] 5-10 hand-curated seed packages
+- [ ] CDN setup on Cloudflare R2
+- [ ] Basic registry metadata (registry.json, meta.json)
 
 NOT in v0.1:
 - `mx sync` (project auto-detection)
 - `mx publish` (authenticated publishing)
-- MCP server mode
-- Web UI / registry browser
+- `mx serve` (MCP server mode)
+- Web registry browser (beyond the static site)
 - User accounts / auth
