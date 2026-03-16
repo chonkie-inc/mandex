@@ -1,37 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-
-const ecosystemColors: Record<string, { bg: string; text: string; border: string }> = {
-  npm: { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444', border: 'rgba(239, 68, 68, 0.2)' },
-  pip: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', border: 'rgba(59, 130, 246, 0.2)' },
-  cargo: { bg: 'rgba(249, 115, 22, 0.1)', text: '#f97316', border: 'rgba(249, 115, 22, 0.2)' },
-  go: { bg: 'rgba(6, 182, 212, 0.1)', text: '#06b6d4', border: 'rgba(6, 182, 212, 0.2)' },
-};
-
-interface Package {
-  name: string;
-  description: string;
-  ecosystem: string;
-  latest_version: string;
-  entry_count: number;
-  size_bytes: number;
-}
-
-let packages: Package[] = [];
-try {
-  const res = await fetch('https://api.mandex.dev/packages');
-  if (res.ok) {
-    packages = await res.json();
-  }
-} catch {
-  // API unavailable at build time — render empty
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1048576).toFixed(1)} MB`;
-}
 ---
 
 <Layout title="Registry - mandex" description="Browse available documentation packages.">
@@ -53,38 +21,13 @@ function formatSize(bytes: number): string {
       />
     </div>
 
-    <div id="package-list" class="grid gap-3">
-      {packages.map((pkg) => {
-        const colors = ecosystemColors[pkg.ecosystem] || { bg: 'transparent', text: 'var(--color-text-tertiary)', border: 'var(--color-border)' };
-        return (
-          <div
-            class="package-item flex items-center justify-between rounded-lg px-5 py-4 border"
-            style="background-color: var(--color-background-secondary); border-color: var(--color-border);"
-            data-name={pkg.name}
-            data-description={pkg.description}
-            data-ecosystem={pkg.ecosystem}
-          >
-            <div>
-              <div class="flex items-center gap-3">
-                <span class="font-medium" style="color: var(--color-text);">{pkg.name}</span>
-                <span class="text-xs font-mono" style="color: var(--color-text-tertiary);">v{pkg.latest_version}</span>
-                <span
-                  class="text-xs px-2 py-0.5 rounded-full border font-mono"
-                  style={`background-color: ${colors.bg}; color: ${colors.text}; border-color: ${colors.border};`}
-                >
-                  {pkg.ecosystem}
-                </span>
-              </div>
-              <p class="text-sm mt-1" style="color: var(--color-text-tertiary);">{pkg.description}</p>
-            </div>
-            <div class="flex items-center gap-6 text-xs font-mono shrink-0 ml-4" style="color: var(--color-text-tertiary);">
-              <span>{pkg.entry_count} entries</span>
-              <span>{formatSize(pkg.size_bytes)}</span>
-            </div>
-          </div>
-        );
-      })}
+    <!-- Loading state -->
+    <div id="loading" class="text-center py-8 text-sm" style="color: var(--color-text-tertiary);">
+      Loading packages...
     </div>
+
+    <!-- Package list (populated by JS) -->
+    <div id="package-list" class="grid gap-3"></div>
 
     <div id="no-results" class="hidden mt-8 text-center text-sm" style="color: var(--color-text-tertiary);">
       No packages match your search.
@@ -102,25 +45,107 @@ function formatSize(bytes: number): string {
 </Layout>
 
 <script>
-  const input = document.getElementById('package-search') as HTMLInputElement;
-  const items = document.querySelectorAll('.package-item');
-  const noResults = document.getElementById('no-results')!;
+  const ecosystemColors: Record<string, { bg: string; text: string; border: string }> = {
+    npm: { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444', border: 'rgba(239, 68, 68, 0.2)' },
+    pip: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', border: 'rgba(59, 130, 246, 0.2)' },
+    cargo: { bg: 'rgba(249, 115, 22, 0.1)', text: '#f97316', border: 'rgba(249, 115, 22, 0.2)' },
+    go: { bg: 'rgba(6, 182, 212, 0.1)', text: '#06b6d4', border: 'rgba(6, 182, 212, 0.2)' },
+  };
 
-  input?.addEventListener('input', () => {
-    const q = input.value.toLowerCase().trim();
-    let visible = 0;
+  interface Package {
+    name: string;
+    description: string;
+    ecosystem: string;
+    latest_version: string;
+    entry_count: number;
+    size_bytes: number;
+  }
 
-    items.forEach((item) => {
-      const el = item as HTMLElement;
-      const name = el.dataset.name?.toLowerCase() || '';
-      const desc = el.dataset.description?.toLowerCase() || '';
-      const eco = el.dataset.ecosystem?.toLowerCase() || '';
-      const match = !q || name.includes(q) || desc.includes(q) || eco.includes(q);
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  }
 
-      el.style.display = match ? '' : 'none';
-      if (match) visible++;
+  function renderPackage(pkg: Package): string {
+    const colors = ecosystemColors[pkg.ecosystem] || {
+      bg: 'transparent',
+      text: 'var(--color-text-tertiary)',
+      border: 'var(--color-border)',
+    };
+
+    return `
+      <div class="package-item flex items-center justify-between rounded-lg px-5 py-4 border"
+           style="background-color: var(--color-background-secondary); border-color: var(--color-border);"
+           data-name="${pkg.name}" data-description="${pkg.description}" data-ecosystem="${pkg.ecosystem}">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="font-medium" style="color: var(--color-text);">${pkg.name}</span>
+            <span class="text-xs font-mono" style="color: var(--color-text-tertiary);">v${pkg.latest_version}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full border font-mono"
+                  style="background-color: ${colors.bg}; color: ${colors.text}; border-color: ${colors.border};">
+              ${pkg.ecosystem}
+            </span>
+          </div>
+          <p class="text-sm mt-1" style="color: var(--color-text-tertiary);">${pkg.description}</p>
+        </div>
+        <div class="flex items-center gap-6 text-xs font-mono shrink-0 ml-4" style="color: var(--color-text-tertiary);">
+          <span>${pkg.entry_count} entries</span>
+          <span>${formatSize(pkg.size_bytes)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  const listEl = document.getElementById('package-list')!;
+  const loadingEl = document.getElementById('loading')!;
+  const noResultsEl = document.getElementById('no-results')!;
+  const searchEl = document.getElementById('package-search') as HTMLInputElement;
+
+  // Fetch packages from API (with fallback)
+  async function loadPackages() {
+    const urls = [
+      'https://api.mandex.dev/packages',
+    ];
+
+    for (const url of urls) {
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          const packages: Package[] = await res.json();
+          loadingEl.style.display = 'none';
+          listEl.innerHTML = packages.map(renderPackage).join('');
+          setupSearch();
+          return;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    loadingEl.textContent = 'Failed to load packages. Try refreshing.';
+  }
+
+  loadPackages();
+
+  function setupSearch() {
+    searchEl?.addEventListener('input', () => {
+      const q = searchEl.value.toLowerCase().trim();
+      const items = document.querySelectorAll('.package-item');
+      let visible = 0;
+
+      items.forEach((item) => {
+        const el = item as HTMLElement;
+        const name = el.dataset.name?.toLowerCase() || '';
+        const desc = el.dataset.description?.toLowerCase() || '';
+        const eco = el.dataset.ecosystem?.toLowerCase() || '';
+        const match = !q || name.includes(q) || desc.includes(q) || eco.includes(q);
+
+        el.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+
+      noResultsEl.classList.toggle('hidden', visible > 0);
     });
-
-    noResults.classList.toggle('hidden', visible > 0);
-  });
+  }
 </script>

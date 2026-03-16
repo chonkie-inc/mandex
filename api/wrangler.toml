@@ -2,8 +2,9 @@ name = "mandex-api"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
 
+# Workers custom domain — Cloudflare manages the DNS automatically
 routes = [
-  { pattern = "api.mandex.dev/*", zone_name = "mandex.dev" }
+  { pattern = "api.mandex.dev", custom_domain = true }
 ]
 
 [[d1_databases]]
