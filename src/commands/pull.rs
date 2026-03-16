@@ -4,6 +4,7 @@ use std::io::Read;
 use crate::storage::{db, paths};
 
 const CDN_BASE: &str = "https://cdn.mandex.dev/v1";
+const API_BASE: &str = "https://api.mandex.dev";
 
 pub fn run(package: &str) -> Result<()> {
     let (name, version) = parse_package_spec(package);
@@ -67,23 +68,18 @@ fn parse_package_spec(spec: &str) -> (&str, Option<&str>) {
 }
 
 fn resolve_latest(name: &str) -> Result<String> {
-    let url = format!("{CDN_BASE}/{name}/meta.json");
+    let url = format!("{API_BASE}/packages/{name}/latest");
     let response = reqwest::blocking::get(&url)
-        .with_context(|| format!("Failed to fetch metadata for {name}"))?;
+        .with_context(|| format!("Failed to resolve latest version for {name}"))?;
 
     if !response.status().is_success() {
         anyhow::bail!("Package '{name}' not found in registry");
     }
 
-    let meta: serde_json::Value = response.json()?;
-    let versions = meta["versions"]
-        .as_array()
-        .context("Invalid metadata format")?;
+    let data: serde_json::Value = response.json()?;
+    let version = data["version"]
+        .as_str()
+        .context("Invalid response from registry")?;
 
-    let latest = versions
-        .last()
-        .and_then(|v| v["version"].as_str())
-        .context("No versions available")?;
-
-    Ok(latest.to_string())
+    Ok(version.to_string())
 }

@@ -1,0 +1,16 @@
+name = "mandex-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+routes = [
+  { pattern = "api.mandex.dev/*", zone_name = "mandex.dev" }
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mandex-registry"
+database_id = "887c6ab9-cbf3-417b-b1e3-4b9f03f05394"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "mandex"

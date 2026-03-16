@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import registry from '../data/registry.json';
 
 const ecosystemColors: Record<string, { bg: string; text: string; border: string }> = {
   npm: { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444', border: 'rgba(239, 68, 68, 0.2)' },
@@ -8,49 +7,87 @@ const ecosystemColors: Record<string, { bg: string; text: string; border: string
   cargo: { bg: 'rgba(249, 115, 22, 0.1)', text: '#f97316', border: 'rgba(249, 115, 22, 0.2)' },
   go: { bg: 'rgba(6, 182, 212, 0.1)', text: '#06b6d4', border: 'rgba(6, 182, 212, 0.2)' },
 };
+
+interface Package {
+  name: string;
+  description: string;
+  ecosystem: string;
+  latest_version: string;
+  entry_count: number;
+  size_bytes: number;
+}
+
+let packages: Package[] = [];
+try {
+  const res = await fetch('https://api.mandex.dev/packages');
+  if (res.ok) {
+    packages = await res.json();
+  }
+} catch {
+  // API unavailable at build time — render empty
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1048576).toFixed(1)} MB`;
+}
 ---
 
 <Layout title="Registry - mandex" description="Browse available documentation packages.">
   <section class="max-w-5xl mx-auto px-6 py-16">
     <h1 class="text-3xl font-bold mb-2" style="color: var(--color-text);">Registry</h1>
-    <p class="mb-10" style="color: var(--color-text-secondary);">
+    <p class="mb-6" style="color: var(--color-text-secondary);">
       Available documentation packages. Install with
       <code class="text-sm px-2 py-0.5 rounded font-mono" style="background-color: var(--color-code-bg); color: var(--color-accent);">mx pull &lt;name&gt;</code>
     </p>
 
-    <div class="grid gap-3">
-      {registry.map((pkg) => {
+    <!-- Search bar -->
+    <div class="mb-8">
+      <input
+        id="package-search"
+        type="text"
+        placeholder="Search packages..."
+        class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors"
+        style="background-color: var(--color-background-secondary); border-color: var(--color-border); color: var(--color-text);"
+      />
+    </div>
+
+    <div id="package-list" class="grid gap-3">
+      {packages.map((pkg) => {
         const colors = ecosystemColors[pkg.ecosystem] || { bg: 'transparent', text: 'var(--color-text-tertiary)', border: 'var(--color-border)' };
         return (
-          <a
-            href={pkg.homepage}
-            target="_blank"
-            rel="noopener"
-            class="flex items-center justify-between rounded-lg px-5 py-4 transition-colors group border"
-            style={`background-color: var(--color-background-secondary); border-color: var(--color-border);`}
+          <div
+            class="package-item flex items-center justify-between rounded-lg px-5 py-4 border"
+            style="background-color: var(--color-background-secondary); border-color: var(--color-border);"
+            data-name={pkg.name}
+            data-description={pkg.description}
+            data-ecosystem={pkg.ecosystem}
           >
-            <div class="flex items-center gap-4">
-              <div>
-                <div class="flex items-center gap-3">
-                  <span class="font-medium" style="color: var(--color-text);">{pkg.name}</span>
-                  <span class="text-xs font-mono" style="color: var(--color-text-tertiary);">v{pkg.version}</span>
-                  <span
-                    class="text-xs px-2 py-0.5 rounded-full border font-mono"
-                    style={`background-color: ${colors.bg}; color: ${colors.text}; border-color: ${colors.border};`}
-                  >
-                    {pkg.ecosystem}
-                  </span>
-                </div>
-                <p class="text-sm mt-1" style="color: var(--color-text-tertiary);">{pkg.description}</p>
+            <div>
+              <div class="flex items-center gap-3">
+                <span class="font-medium" style="color: var(--color-text);">{pkg.name}</span>
+                <span class="text-xs font-mono" style="color: var(--color-text-tertiary);">v{pkg.latest_version}</span>
+                <span
+                  class="text-xs px-2 py-0.5 rounded-full border font-mono"
+                  style={`background-color: ${colors.bg}; color: ${colors.text}; border-color: ${colors.border};`}
+                >
+                  {pkg.ecosystem}
+                </span>
               </div>
+              <p class="text-sm mt-1" style="color: var(--color-text-tertiary);">{pkg.description}</p>
             </div>
             <div class="flex items-center gap-6 text-xs font-mono shrink-0 ml-4" style="color: var(--color-text-tertiary);">
-              <span>{pkg.entries} entries</span>
-              <span>{pkg.size}</span>
+              <span>{pkg.entry_count} entries</span>
+              <span>{formatSize(pkg.size_bytes)}</span>
             </div>
-          </a>
+          </div>
         );
       })}
+    </div>
+
+    <div id="no-results" class="hidden mt-8 text-center text-sm" style="color: var(--color-text-tertiary);">
+      No packages match your search.
     </div>
 
     <div class="mt-12 rounded-lg p-6 text-center border" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
@@ -63,3 +100,27 @@ const ecosystemColors: Record<string, { bg: string; text: string; border: string
     </div>
   </section>
 </Layout>
+
+<script>
+  const input = document.getElementById('package-search') as HTMLInputElement;
+  const items = document.querySelectorAll('.package-item');
+  const noResults = document.getElementById('no-results')!;
+
+  input?.addEventListener('input', () => {
+    const q = input.value.toLowerCase().trim();
+    let visible = 0;
+
+    items.forEach((item) => {
+      const el = item as HTMLElement;
+      const name = el.dataset.name?.toLowerCase() || '';
+      const desc = el.dataset.description?.toLowerCase() || '';
+      const eco = el.dataset.ecosystem?.toLowerCase() || '';
+      const match = !q || name.includes(q) || desc.includes(q) || eco.includes(q);
+
+      el.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    noResults.classList.toggle('hidden', visible > 0);
+  });
+</script>
