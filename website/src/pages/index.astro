@@ -20,29 +20,39 @@ import Terminal from '../components/Terminal.astro';
     </div>
   </section>
 
-  <!-- Bento grid -->
+  <!-- CTA -->
   <section class="max-w-5xl mx-auto px-6 pb-16">
+    <div class="flex flex-col items-center gap-3">
+      <a href="/about" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-colors" style="background-color: var(--color-text); color: var(--color-background);">
+        Read the full post
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a href="/registry" class="text-sm transition-colors" style="color: var(--color-text-tertiary);" onmouseover="this.style.color=getComputedStyle(document.documentElement).getPropertyValue('--color-accent')" onmouseout="this.style.color=getComputedStyle(document.documentElement).getPropertyValue('--color-text-tertiary')">
+        or browse available packages &rarr;
+      </a>
+    </div>
+  </section>
+
+  <!-- Bento grid -->
+  <section class="max-w-5xl mx-auto px-6 pb-24">
     <div class="bento-grid">
 
       <!-- Cell 1: Works with your agent (2-col wide) -->
       <div class="bento-cell bento-wide" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
         <p class="bento-label">Works with your agent</p>
         <div class="agent-logos">
-          <!-- Claude Code -->
           <div class="agent-badge" title="Claude Code">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2L2 19.5h20L12 2zm0 3.5l7.5 13H4.5L12 5.5z"/>
             </svg>
             <span>Claude Code</span>
           </div>
-          <!-- Cursor -->
           <div class="agent-badge" title="Cursor">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 3l14 9-14 9V3z"/>
             </svg>
             <span>Cursor</span>
           </div>
-          <!-- Windsurf -->
           <div class="agent-badge" title="Windsurf">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M3 12 Q8 4 15 8 Q20 11 21 18" stroke-linecap="round"/>
@@ -50,7 +60,6 @@ import Terminal from '../components/Terminal.astro';
             </svg>
             <span>Windsurf</span>
           </div>
-          <!-- Codex -->
           <div class="agent-badge" title="Codex">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 2a8 8 0 1 1 0 16A8 8 0 0 1 12 4zm-1 4v2H9v2h2v4h2v-4h2v-2h-2V8h-2z"/>
@@ -109,19 +118,6 @@ import Terminal from '../components/Terminal.astro';
         </div>
       </div>
 
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section class="max-w-5xl mx-auto px-6 pb-16">
-    <div class="flex flex-col items-center gap-3">
-      <a href="/about" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-colors" style="background-color: var(--color-text); color: var(--color-background);">
-        Read the full post
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
-      <a href="/registry" class="text-sm transition-colors" style="color: var(--color-text-tertiary);" onmouseover="this.style.color=getComputedStyle(document.documentElement).getPropertyValue('--color-accent')" onmouseout="this.style.color=getComputedStyle(document.documentElement).getPropertyValue('--color-text-tertiary')">
-        or browse available packages &rarr;
-      </a>
     </div>
   </section>
 </Layout>
