@@ -7,10 +7,10 @@ const html = await marked(rawContent);
 ---
 
 <Layout title="About - mandex" description="Why documentation should be distributed like packages, not served like APIs.">
-  <div class="max-w-5xl mx-auto px-6 py-16 flex gap-8 items-start">
+  <div class="max-w-5xl mx-auto px-6 py-16 flex gap-8">
 
     <!-- Sticky TOC — left of content, same width as nav icon cluster -->
-    <aside id="toc-aside" class="hidden xl:block w-44 shrink-0">
+    <aside id="toc-aside" class="hidden xl:block w-44 shrink-0 self-stretch">
       <nav id="toc" class="sticky top-20 text-xs leading-relaxed">
         <p class="font-medium mb-3 uppercase tracking-wide" style="color: var(--color-text-tertiary); font-size: 0.65rem; letter-spacing: 0.1em;">On this page</p>
         <ul id="toc-list" class="space-y-1.5"></ul>
