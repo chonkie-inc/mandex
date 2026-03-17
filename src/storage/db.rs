@@ -98,13 +98,27 @@ pub struct SearchResult {
     pub rank: f64,
 }
 
-/// Searches the FTS5 index using BM25 ranking
+/// Searches the FTS5 index using BM25 ranking.
+/// Filters stop words and joins terms with OR for broader matching.
 pub fn search(conn: &Connection, query: &str) -> Result<Vec<SearchResult>> {
-    let fts_query = query
+    let stop_words: std::collections::HashSet<String> = stop_words::get(stop_words::LANGUAGE::English)
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+
+    let words: Vec<&str> = query
         .split_whitespace()
-        .map(|w| format!("\"{w}\""))
-        .collect::<Vec<_>>()
-        .join(" ");
+        .filter(|w| !stop_words.contains(&w.to_lowercase()))
+        .collect();
+
+    let fts_query = if words.is_empty() {
+        // All words were stop words — use original query as-is
+        query.to_string()
+    } else if words.len() == 1 {
+        words[0].to_string()
+    } else {
+        words.join(" OR ")
+    };
 
     let mut stmt = conn.prepare(
         "SELECT e.name, e.content, rank

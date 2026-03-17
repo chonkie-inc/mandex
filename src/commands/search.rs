@@ -2,12 +2,9 @@ use anyhow::Result;
 
 use crate::storage::{db, paths};
 
-const PREVIEW_CHARS: usize = 200;
-
 pub fn run(package: Option<&str>, query: &str) -> Result<()> {
     let packages = match package {
         Some(name) => {
-            // Search within a specific package — find installed versions
             let pkg_dir = paths::package_dir(name)?;
             if !pkg_dir.exists() {
                 anyhow::bail!("Package '{name}' is not installed. Run: mx pull {name}");
@@ -33,43 +30,34 @@ pub fn run(package: Option<&str>, query: &str) -> Result<()> {
     let mut total_results = 0;
 
     for (name, versions) in &packages {
-        // Search the latest installed version
         let version = versions.last().unwrap();
         let db_path = paths::package_db_path(name, version)?;
         let conn = db::open_db(&db_path)?;
 
         let results = db::search(&conn, query)?;
         for result in &results {
-            let preview = truncate_preview(&result.content, PREVIEW_CHARS);
-            println!("  \x1b[33m{name}@{version}\x1b[0m — {}", result.name);
-            println!("  {preview}");
+            // Header: package@version — entry name
+            println!(
+                "\x1b[33m{name}@{version}\x1b[0m — \x1b[1m{}\x1b[0m",
+                result.name
+            );
             println!();
+            // Full content of the chunk
+            println!("{}", result.content);
+            // Separator between results
+            println!("\n{}\n", "─".repeat(60));
             total_results += 1;
         }
     }
 
     if total_results == 0 {
         println!("No results for '{query}'");
+    } else {
+        println!(
+            "\x1b[2m{total_results} result{}\x1b[0m",
+            if total_results == 1 { "" } else { "s" }
+        );
     }
 
     Ok(())
-}
-
-fn truncate_preview(content: &str, max_chars: usize) -> String {
-    // Skip the first heading line if present, show the next meaningful content
-    let meaningful: String = content
-        .lines()
-        .skip_while(|l| l.trim().is_empty())
-        .skip_while(|l| l.trim().starts_with('#'))
-        .skip_while(|l| l.trim().is_empty())
-        .take(3)
-        .collect::<Vec<_>>()
-        .join(" ");
-
-    let trimmed = meaningful.trim();
-    if trimmed.len() > max_chars {
-        format!("{}...", &trimmed[..max_chars])
-    } else {
-        trimmed.to_string()
-    }
 }
