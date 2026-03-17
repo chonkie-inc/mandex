@@ -30,8 +30,9 @@ export default {
                  v.version AS latest_version, v.entry_count, v.size_bytes
           FROM packages p
           LEFT JOIN versions v ON v.package = p.name
-            AND v.published_at = (
-              SELECT MAX(v2.published_at) FROM versions v2 WHERE v2.package = p.name
+            AND v.rowid = (
+              SELECT v2.rowid FROM versions v2 WHERE v2.package = p.name
+              ORDER BY v2.published_at DESC LIMIT 1
             )
           WHERE 1=1
         `;
