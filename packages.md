@@ -1,75 +1,64 @@
 # Target Packages
 
-Libraries to prioritize for the initial mandex registry. Ordered by likely demand — rapidly-changing APIs where stale training data causes the most pain.
+Libraries to prioritize for the initial mandex registry. Ordered by likely demand.
 
-## Frontend / JavaScript
+## Documentation Availability
 
-| Package | Ecosystem | Docs URL | Notes |
-|---------|-----------|----------|-------|
-| nextjs | npm (`next`) | https://nextjs.org/docs | App Router API changes every major version |
-| react | npm (`react`) | https://react.dev/reference | Hooks, Server Components |
-| tailwindcss | npm (`tailwindcss`) | https://tailwindcss.com/docs | v4 broke a lot of v3 patterns |
-| typescript | npm (`typescript`) | https://www.typescriptlang.org/docs | |
-| astro | npm (`astro`) | https://docs.astro.build | |
-| shadcn-ui | npm (`shadcn/ui`) | https://ui.shadcn.com/docs | Component library, frequently updated |
-| vite | npm (`vite`) | https://vite.dev/guide | |
+| Package | Ecosystem | Markdown docs | Source | llms.txt | Notes |
+|---------|-----------|--------------|--------|----------|-------|
+| nextjs | npm | ✅ | `/docs` in main repo (MDX) | ✅ nextjs.org/docs/llms-full.txt | canary branch |
+| react | npm | ✅ | separate repo: reactjs/react.dev | ❌ | |
+| tailwindcss | npm | ✅ | tailwindlabs/tailwindcss.com (MDX) | ❌ | explicitly rejected llms.txt |
+| typescript | npm | ✅ | microsoft/TypeScript-Website `/packages` | ❌ | complex monorepo |
+| astro | npm | ✅ | separate repo: withastro/docs `/src/content/docs` | ❌ | Starlight |
+| shadcn-ui | npm | ✅ | monorepo: `/apps/www/content/docs` (MDX) | ❌ | |
+| vite | npm | ✅ | separate repo: vitejs/vite `/docs` | ❌ | |
+| hono | npm | ✅ | honojs/hono `/docs` | ❌ | |
+| drizzle | npm | ✅ | separate repo: drizzle-team/drizzle-orm-docs (MDX) | ❌ | |
+| prisma | npm | ✅ | separate repo: prisma/web `/apps/docs` (MDX) | ❌ | |
+| langchain | pip | ✅ | separate repo: langchain-ai/docs (MDX) | ✅ docs.langchain.com/llms.txt | |
+| langgraph | pip | ✅ | in langchain-ai/langgraph `/docs` | ✅ | |
+| openai | pip | ❌ | no markdown — docs on platform.openai.com | ❌ | HTML only |
+| anthropic | pip | ❌ | no markdown — docs on docs.anthropic.com | ❌ | HTML only |
+| pytorch | pip | ⚠️ | pytorch/docs — auto-generated HTML | ❌ | RST source, no clean markdown |
+| transformers | pip | ✅ | in huggingface/transformers `/docs/source/en` | ❌ | large, build system |
+| fastapi | pip | ✅ | in tiangolo/fastapi `/docs/en` | ❌ | pending PR |
+| pydantic | pip | ✅ | separate website repo | ✅ docs.pydantic.dev/latest/llms.txt | |
+| sqlalchemy | pip | ⚠️ | `/doc/build` — reStructuredText, not Markdown | ❌ | Sphinx/RST |
+| supabase | npm/pip | ✅ | monorepo: supabase/supabase `/apps/docs` | ❌ | |
+| cloudflare-workers | npm | ✅ | cloudflare/cloudflare-docs `/src/content/docs` (MDX) | ❌ | |
+| ai-sdk | npm | ✅ | in vercel/ai `/docs` (MDX) | ✅ ai-sdk.dev/llms.txt | |
+| axum | cargo | ✅ | inline + guides in tokio-rs/axum | ❌ | sparse guides |
+| tokio | cargo | ✅ | separate website: tokio.rs | ❌ | |
+| serde | cargo | ⚠️ | minimal — mostly API docs | ❌ | |
 
-## Backend / JavaScript
-
-| Package | Ecosystem | Docs URL | Notes |
-|---------|-----------|----------|-------|
-| hono | npm (`hono`) | https://hono.dev/docs | Popular for Cloudflare Workers |
-| drizzle | npm (`drizzle-orm`) | https://orm.drizzle.team/docs | Newer ORM, lots of breaking changes |
-| prisma | npm (`prisma`) | https://www.prisma.io/docs | |
-
-## AI / ML (Python)
-
-| Package | Ecosystem | Docs URL | Notes |
-|---------|-----------|----------|-------|
-| langchain | pip (`langchain`) | https://python.langchain.com/docs | Extremely fast-moving API |
-| langgraph | pip (`langgraph`) | https://langchain-ai.github.io/langgraph | Newer, agents/graphs |
-| openai | pip (`openai`) | https://platform.openai.com/docs | SDK changes frequently |
-| anthropic | pip (`anthropic`) | https://docs.anthropic.com | |
-| pytorch | pip (`torch`) | https://pytorch.org/docs | Large, deep API surface |
-| transformers | pip (`transformers`) | https://huggingface.co/docs/transformers | |
-
-## Python Backend
-
-| Package | Ecosystem | Docs URL | Notes |
-|---------|-----------|----------|-------|
-| fastapi | pip (`fastapi`) | https://fastapi.tiangolo.com | |
-| pydantic | pip (`pydantic`) | https://docs.pydantic.dev | v2 broke v1 heavily |
-| sqlalchemy | pip (`sqlalchemy`) | https://docs.sqlalchemy.org | |
-
-## Cloud / Infra
-
-| Package | Ecosystem | Docs URL | Notes |
-|---------|-----------|----------|-------|
-| supabase | npm/pip (`supabase`) | https://supabase.com/docs | Auth, DB, Storage APIs |
-| cloudflare-workers | npm (`@cloudflare/workers-types`) | https://developers.cloudflare.com/workers | |
-| ai-sdk | npm (`ai`) | https://sdk.vercel.ai/docs | Vercel AI SDK, fast-moving |
-
-## Rust
-
-| Package | Ecosystem | Docs URL | Notes |
-|---------|-----------|----------|-------|
-| axum | cargo (`axum`) | https://docs.rs/axum | Most popular Rust web framework |
-| tokio | cargo (`tokio`) | https://tokio.rs/tokio/tutorial | Async runtime |
-| serde | cargo (`serde`) | https://serde.rs | |
+**Summary:** 20/25 have markdown available. 2 are HTML-only (openai, anthropic). 3 are partial/RST (pytorch, sqlalchemy, serde).
 
 ---
 
 ## Priority Order for v0.1 Seed
 
-These 10 should be built first — highest pain / most queries:
+1. `nextjs` — MDX in main repo, llms.txt available
+2. `fastapi` — clean markdown, popular Python API framework
+3. `langchain` — markdown available, llms.txt, fast-moving
+4. `pydantic` — separate docs repo, llms.txt available
+5. `tailwindcss` — markdown available, v4 migration pain
+6. `drizzle` — separate docs repo, newer ORM
+7. `ai-sdk` — MDX in main repo, llms.txt available
+8. `hono` — markdown in repo, popular for edge
+9. `transformers` — large markdown docs in repo
+10. `react` — separate react.dev repo
 
-1. `nextjs` — changes every major version, huge user base
-2. `react` — Server Components changed a lot
-3. `tailwindcss` — v4 migration pain
-4. `fastapi` — most popular Python API framework
-5. `langchain` — fastest-moving API in AI ecosystem
-6. `pydantic` — v2 broke everything
-7. `drizzle` — newer, less training data
-8. `hono` — popular for edge/workers
-9. `ai-sdk` — Vercel AI SDK, agent-heavy usage
-10. `supabase` — auth + db API used in most full-stack demos
+---
+
+## Build Strategy
+
+**Clone & build:** Most packages have docs in a GitHub repo we can clone and run `mx build ./docs` against.
+
+**llms.txt available:** nextjs, langchain, langgraph, pydantic, ai-sdk — can use as a quick check/fallback.
+
+**Needs custom work:**
+- `openai` / `anthropic` — HTML only, need to scrape or wait for official markdown
+- `pytorch` — RST source, would need conversion
+- `sqlalchemy` — RST source, would need conversion
+- `serde` — minimal docs, low priority
