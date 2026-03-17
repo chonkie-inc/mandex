@@ -59,38 +59,14 @@ pub fn run(path: &str, name: &str, version: &str, output: Option<&str>) -> Resul
                 .unwrap_or_else(|| "untitled".to_string())
         });
 
-        // Split by markdown headings into sections
-        let sections = split_by_headings(&content);
-
-        if sections.len() <= 1 {
-            // Small file or no subheadings — chunk by size using the chunk crate
-            let chunks: Vec<&[u8]> = chunk(content.as_bytes())
-                .size(MAX_CHUNK_SIZE)
-                .delimiters(b"\n")
-                .collect();
-
-            if chunks.len() <= 1 {
-                // Single chunk — store as-is
-                db::insert_entry(&conn, &page_title, content.trim())?;
-                count += 1;
-            } else {
-                for (i, c) in chunks.iter().enumerate() {
-                    let text = String::from_utf8_lossy(c);
-                    let trimmed = text.trim();
-                    if trimmed.is_empty() {
-                        continue;
-                    }
-                    let chunk_name = if chunks.len() > 1 {
-                        format!("{page_title} (part {})", i + 1)
-                    } else {
-                        page_title.clone()
-                    };
-                    db::insert_entry(&conn, &chunk_name, trimmed)?;
-                    count += 1;
-                }
-            }
+        // If the file fits within MAX_CHUNK_SIZE, store as a single entry
+        if content.len() <= MAX_CHUNK_SIZE {
+            db::insert_entry(&conn, &page_title, content.trim())?;
+            count += 1;
         } else {
-            // Multiple sections — each heading section is an entry
+            // Large file — split by headings
+            let sections = split_by_headings(&content);
+
             for (section_title, section_content) in &sections {
                 let trimmed = section_content.trim();
                 if trimmed.is_empty() {
