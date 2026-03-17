@@ -20,6 +20,98 @@ import Terminal from '../components/Terminal.astro';
     </div>
   </section>
 
+  <!-- Bento grid -->
+  <section class="max-w-5xl mx-auto px-6 pb-16">
+    <div class="bento-grid">
+
+      <!-- Cell 1: Works with your agent (2-col wide) -->
+      <div class="bento-cell bento-wide" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+        <p class="bento-label">Works with your agent</p>
+        <div class="agent-logos">
+          <!-- Claude Code -->
+          <div class="agent-badge" title="Claude Code">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L2 19.5h20L12 2zm0 3.5l7.5 13H4.5L12 5.5z"/>
+            </svg>
+            <span>Claude Code</span>
+          </div>
+          <!-- Cursor -->
+          <div class="agent-badge" title="Cursor">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 3l14 9-14 9V3z"/>
+            </svg>
+            <span>Cursor</span>
+          </div>
+          <!-- Windsurf -->
+          <div class="agent-badge" title="Windsurf">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M3 12 Q8 4 15 8 Q20 11 21 18" stroke-linecap="round"/>
+              <path d="M3 12 Q9 16 15 14 Q19 12 21 18" stroke-linecap="round"/>
+            </svg>
+            <span>Windsurf</span>
+          </div>
+          <!-- Codex -->
+          <div class="agent-badge" title="Codex">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 2a8 8 0 1 1 0 16A8 8 0 0 1 12 4zm-1 4v2H9v2h2v4h2v-4h2v-2h-2V8h-2z"/>
+            </svg>
+            <span>Codex</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cell 2: Sub-millisecond search -->
+      <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+        <p class="bento-label">Search speed</p>
+        <p class="bento-stat" style="color: var(--color-accent);">&lt; 1ms</p>
+        <p class="bento-sub">local FTS5 + BM25</p>
+      </div>
+
+      <!-- Cell 3: Zero rate limits -->
+      <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+        <p class="bento-label">Rate limits</p>
+        <p class="bento-stat" style="color: var(--color-accent);">∞</p>
+        <p class="bento-sub">unlimited queries</p>
+      </div>
+
+      <!-- Cell 4: Version-pinned (2-col) -->
+      <div class="bento-cell bento-wide" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+        <p class="bento-label">Always the right version</p>
+        <p class="bento-code" style="color: var(--color-accent); background-color: var(--color-background);">pytorch@2.3.0</p>
+        <p class="bento-sub">version-pinned to your project</p>
+      </div>
+
+      <!-- Cell 5: Offline -->
+      <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+        <p class="bento-label">Offline</p>
+        <p class="bento-stat" style="color: var(--color-accent);">100%</p>
+        <p class="bento-sub">after initial pull</p>
+      </div>
+
+      <!-- Cell 6: Single binary -->
+      <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+        <p class="bento-label">CLI startup</p>
+        <p class="bento-stat" style="color: var(--color-accent);">5ms</p>
+        <p class="bento-sub">single static binary</p>
+      </div>
+
+      <!-- Cell 7: Open registry (2-col) -->
+      <div class="bento-cell bento-wide" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+        <p class="bento-label">Open registry</p>
+        <div style="display: flex; align-items: baseline; gap: 1rem; margin: 0.5rem 0;">
+          <p class="bento-stat" style="color: var(--color-accent); margin: 0;">11</p>
+          <p style="color: var(--color-text-secondary); font-size: 1rem; margin: 0;">packages and growing</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
+          <span class="eco-tag npm">npm</span>
+          <span class="eco-tag pip">pip</span>
+          <span class="eco-tag cargo">cargo</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="max-w-5xl mx-auto px-6 pb-16">
     <div class="flex flex-col items-center gap-3">
@@ -35,6 +127,104 @@ import Terminal from '../components/Terminal.astro';
 </Layout>
 
 <style>
+  /* ── Bento grid ─────────────────────────────────── */
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+
+  .bento-cell {
+    border: 1px solid;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    transition: opacity 0.2s;
+  }
+  .bento-cell:hover { opacity: 0.85; }
+
+  .bento-wide { grid-column: span 2; }
+
+  .bento-label {
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+    margin: 0;
+  }
+
+  .bento-stat {
+    font-size: 2.75rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin: 0.4rem 0 0;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .bento-sub {
+    font-size: 0.75rem;
+    color: var(--color-text-tertiary);
+    margin: 0.25rem 0 0;
+  }
+
+  .bento-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    display: inline-block;
+    margin: 0.5rem 0 0;
+    letter-spacing: -0.01em;
+  }
+
+  /* Agent logos cell */
+  .agent-logos {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .agent-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-text-secondary);
+    transition: color 0.15s;
+  }
+  .agent-badge:hover { color: var(--color-text); }
+  .agent-badge span {
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--color-text-tertiary);
+    white-space: nowrap;
+  }
+
+  /* Ecosystem tags */
+  .eco-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+  .eco-tag.npm    { color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); }
+  .eco-tag.pip    { color: #3b82f6; border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.08); }
+  .eco-tag.cargo  { color: #f97316; border-color: rgba(249,115,22,0.3); background: rgba(249,115,22,0.08); }
+
+  @media (max-width: 640px) {
+    .bento-grid { grid-template-columns: repeat(2, 1fr); }
+    .bento-wide { grid-column: span 2; }
+  }
+
+  /* ── Typed cursor ───────────────────────────────── */
   .typed-cursor {
     animation: blink-cursor 0.8s step-end infinite;
     font-weight: 100;
