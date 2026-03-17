@@ -9,7 +9,7 @@ import BentoGrid from '../components/BentoGrid.astro';
   <!-- Hero -->
   <section class="max-w-5xl mx-auto px-6 pt-20 pb-8 text-center">
     <h1 class="text-4xl sm:text-5xl font-bold tracking-tight leading-tight" style="color: var(--color-text); white-space: nowrap;">
-      Docs shouldn't need a <span id="typed-word" style="color: var(--color-accent); font-family: 'JetBrains Mono', monospace; display: inline-block; width: 8ch; text-align: left;"></span>
+      Docs shouldn't need a <span style="font-family: 'JetBrains Mono', monospace; display: inline-block; width: 8ch; text-align: left;"><span id="typed-word" style="color: var(--color-accent);"></span><span class="title-cursor" style="color: var(--color-accent);">_</span></span><span class="title-cursor" style="color: var(--color-accent);">_</span>
     </h1>
     <p class="mt-5 text-lg max-w-3xl mx-auto leading-relaxed" style="color: var(--color-text-secondary);">
       AI agents make hundreds of doc lookups per session. Cloud MCP servers rate-limit you. Web scraping gets blocked. Mandex packages documentation into local, versioned indexes — one download, unlimited queries, always the right version.
@@ -61,8 +61,21 @@ import BentoGrid from '../components/BentoGrid.astro';
 
 </Layout>
 
+<style>
+  .title-cursor {
+    display: inline;
+    font-weight: 700;
+    animation: title-blink 0.9s step-end infinite;
+    margin-left: 1px;
+  }
+  @keyframes title-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+</style>
+
 <script>
-  const words = ['Server.', 'Key.', 'Proxy.', 'Scraper.', 'Token.', 'MCP.', 'Bot.', 'Plugin.', 'Cache.'];
+  const words = ['Server', 'Key', 'Proxy', 'Scraper', 'Token', 'MCP', 'Bot', 'Plugin', 'Cache'];
   const el = document.getElementById('typed-word')!;
 
   let wordIndex = 0;
