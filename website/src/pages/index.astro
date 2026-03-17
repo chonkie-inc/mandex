@@ -72,42 +72,35 @@ import Terminal from '../components/Terminal.astro';
         </div>
       </div>
 
-      <!-- Cell 2: Sub-millisecond search -->
+      <!-- Row 1, Cell 2: Sub-millisecond search -->
       <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
         <p class="bento-label">Search speed</p>
         <p class="bento-stat" style="color: var(--color-accent);">&lt; 1ms</p>
         <p class="bento-sub">local FTS5 + BM25</p>
       </div>
 
-      <!-- Cell 3: Zero rate limits -->
+      <!-- Row 1, Cell 3: Zero rate limits -->
       <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
         <p class="bento-label">Rate limits</p>
         <p class="bento-stat" style="color: var(--color-accent);">∞</p>
         <p class="bento-sub">unlimited queries</p>
       </div>
 
-      <!-- Cell 4: Version-pinned (2-col) -->
-      <div class="bento-cell bento-wide" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
-        <p class="bento-label">Always the right version</p>
-        <p class="bento-code" style="color: var(--color-accent); background-color: var(--color-background);">pytorch@2.3.0</p>
-        <p class="bento-sub">version-pinned to your project</p>
-      </div>
-
-      <!-- Cell 5: Offline -->
+      <!-- Row 2, Cell 4: Version-pinned (small) -->
       <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
-        <p class="bento-label">Offline</p>
-        <p class="bento-stat" style="color: var(--color-accent);">100%</p>
-        <p class="bento-sub">after initial pull</p>
+        <p class="bento-label">Version-pinned</p>
+        <p class="bento-code" style="color: var(--color-accent); background-color: var(--color-background); margin-top: 0.5rem; font-size: 0.85rem;">pytorch@2.3.0</p>
+        <p class="bento-sub">always the right version</p>
       </div>
 
-      <!-- Cell 6: Single binary -->
+      <!-- Row 2, Cell 5: Zero config (small) -->
       <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
-        <p class="bento-label">CLI startup</p>
-        <p class="bento-stat" style="color: var(--color-accent);">5ms</p>
-        <p class="bento-sub">single static binary</p>
+        <p class="bento-label">Zero config</p>
+        <p class="bento-code" style="color: var(--color-accent); background-color: var(--color-background); margin-top: 0.5rem; font-size: 0.85rem;">mx sync</p>
+        <p class="bento-sub">pulls docs for your project</p>
       </div>
 
-      <!-- Cell 7: Open registry (2-col) -->
+      <!-- Row 2, Cell 6: Open registry (wide) -->
       <div class="bento-cell bento-wide" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
         <p class="bento-label">Open registry</p>
         <div style="display: flex; align-items: baseline; gap: 1rem; margin: 0.5rem 0;">
