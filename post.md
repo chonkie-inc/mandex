@@ -195,11 +195,13 @@ Mandex doesn't solve the problem of documentation going stale if authors don't p
 
 Search has an inherent ceiling. Local FTS5 ranking can surface the right sections, but it can't synthesize across them — and for complex questions, the answer often lives across three or four separate documentation entries.
 
-Sub-agents change this. An agent like Claude Code can run four or five `mx search` calls in parallel, read the results, and reason across them to produce a complete, accurate answer. The sub-agent does the synthesis; mandex provides the raw material. The combination is more useful than either alone.
+The natural question is: why not use better search? Embedding models, rerankers, and LLM-based query expansion would all produce higher-quality results than BM25. The reason mandex doesn't ship with them is the same reason it doesn't require an API key: they require significant memory, compute, or external dependencies that break the offline, zero-config promise. A good embedding model takes 500MB of RAM and needs to run inference on every query. A reranker adds another model. An LLM-based query expander needs an API key. None of that is appropriate for a CLI tool that should start in 5ms and work without any setup.
 
-The practical pattern looks like this: when Claude Code needs to generate code using a library, it spawns a sub-agent that runs targeted searches against the local mandex packages, reads the relevant sections, and returns a synthesis. The main agent uses that synthesis to write the code. This is faster and more accurate than web fetching, works offline, and produces answers grounded in the exact version of the library the project is using.
+Sub-agents change this. An agent like Claude Code can run four or five `mx search` calls in parallel, read the results, and reason across them to produce a complete, accurate answer. The sub-agent does the synthesis; mandex provides the raw material. The combination is more useful than either alone — and the LLM doing the synthesis is already running, already paid for, and already has the context to know which results are relevant.
 
-This is why mandex doesn't need perfect search ranking to be useful. Search quality matters at the margins — better ranking means less noise for the sub-agent to filter. But even imperfect search results over local, version-pinned documentation beat the alternative of asking an agent to hallucinate from stale training data.
+The practical pattern: when Claude Code needs to generate code using a library, it spawns a sub-agent that runs targeted searches against the local mandex packages, reads the relevant sections, and returns a synthesis. The main agent uses that synthesis to write the code. This is faster and more accurate than web fetching, works offline, and produces answers grounded in the exact version of the library the project is using.
+
+This is why mandex doesn't need perfect search ranking to be useful. Search quality matters at the margins — better ranking means less noise for the sub-agent to filter. But even imperfect BM25 results over local, version-pinned documentation beat the alternative of asking an agent to hallucinate from stale training data.
 
 ## Getting started
 
