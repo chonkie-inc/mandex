@@ -89,14 +89,14 @@ import Terminal from '../components/Terminal.astro';
       <!-- Row 2, Cell 4: Version-pinned (small) -->
       <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
         <p class="bento-label">Version-pinned</p>
-        <p class="bento-code" style="color: var(--color-accent); background-color: var(--color-background); margin-top: 0.5rem; font-size: 0.85rem;">pytorch@2.3.0</p>
+        <p class="bento-version"><span style="color: var(--color-text-tertiary);">@</span><span style="color: var(--color-accent);">2.3.0</span></p>
         <p class="bento-sub">always the right version</p>
       </div>
 
       <!-- Row 2, Cell 5: Zero config (small) -->
       <div class="bento-cell" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
         <p class="bento-label">Zero config</p>
-        <p class="bento-code" style="color: var(--color-accent); background-color: var(--color-background); margin-top: 0.5rem; font-size: 0.85rem;">mx sync</p>
+        <p class="bento-prompt"><span class="bento-prompt-char">$</span> mx sync</p>
         <p class="bento-sub">pulls docs for your project</p>
       </div>
 
@@ -172,6 +172,30 @@ import Terminal from '../components/Terminal.astro';
     display: inline-block;
     margin: 0.5rem 0 0;
     letter-spacing: -0.01em;
+  }
+
+  .bento-version {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0.6rem 0 0;
+    line-height: 1.2;
+  }
+
+  .bento-prompt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0.6rem 0 0;
+    color: var(--color-text);
+    line-height: 1.2;
+  }
+
+  .bento-prompt-char {
+    color: var(--color-accent);
+    margin-right: 0.35em;
   }
 
   /* Agent logos cell */
