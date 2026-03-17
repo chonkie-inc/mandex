@@ -70,8 +70,8 @@
   <div class="bento-cell bento-wide" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
     <p class="bento-label">Open registry</p>
     <div style="display: flex; align-items: baseline; gap: 1rem; margin: 0.5rem 0;">
-      <p class="bento-stat" style="color: var(--color-accent); margin: 0;">11</p>
-      <p style="color: var(--color-text-secondary); font-size: 1rem; margin: 0;">packages and growing</p>
+      <p class="bento-stat" id="bento-entry-count" style="color: var(--color-accent); margin: 0;">—</p>
+      <p style="color: var(--color-text-secondary); font-size: 1rem; margin: 0;">packages available</p>
     </div>
     <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
       <span class="eco-tag npm">npm</span>
@@ -189,3 +189,13 @@
     .bento-wide { grid-column: span 2; }
   }
 </style>
+
+<script>
+  fetch('https://api.mandex.dev/stats')
+    .then(r => r.json())
+    .then((data: {total_versions: number}) => {
+      const el = document.getElementById('bento-entry-count');
+      if (el) el.textContent = data.total_versions.toLocaleString();
+    })
+    .catch(() => {});
+</script>

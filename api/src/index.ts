@@ -100,6 +100,14 @@ export default {
         return Response.json(version, { headers: corsHeaders });
       }
 
+      // GET /stats — total version count across all packages
+      if (path === "/stats" && request.method === "GET") {
+        const result = await env.DB.prepare(
+          "SELECT COUNT(*) as total_versions FROM versions"
+        ).first();
+        return Response.json(result, { headers: corsHeaders });
+      }
+
       return Response.json({ error: "Not found" }, {
         status: 404,
         headers: corsHeaders,
