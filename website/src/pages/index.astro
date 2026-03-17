@@ -6,7 +6,7 @@ import Terminal from '../components/Terminal.astro';
 <Layout title="mandex - documentation packages for AI agents">
   <section class="max-w-5xl mx-auto px-6 pt-16 pb-8 text-center">
     <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-tight" style="color: var(--color-text);">
-      Docs shouldn't need an API.
+      Docs shouldn't need an <span id="typed-word" style="color: var(--color-accent);"></span><span id="typed-cursor" class="typed-cursor">|</span>
     </h1>
     <p class="mt-5 text-lg max-w-4xl mx-auto leading-relaxed" style="color: var(--color-text-secondary);">
       AI agents make hundreds of doc lookups per session. Cloud MCP servers rate-limit you. Web scraping gets blocked. Mandex packages documentation into local, versioned indexes — one download, unlimited queries, always the right version.
@@ -33,3 +33,57 @@ import Terminal from '../components/Terminal.astro';
     </div>
   </section>
 </Layout>
+
+<style>
+  .typed-cursor {
+    animation: blink-cursor 0.8s step-end infinite;
+    font-weight: 100;
+    opacity: 0.7;
+  }
+  @keyframes blink-cursor {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 0; }
+  }
+</style>
+
+<script>
+  const words = ['API.', 'MCP.', 'Server.', 'Rate Limit.', 'API Key.', 'Web Scrape.'];
+  const el = document.getElementById('typed-word')!;
+  const cursor = document.getElementById('typed-cursor')!;
+
+  let wordIndex = 0;
+  let charIndex = 0;
+  let deleting = false;
+
+  const TYPE_SPEED = 80;
+  const DELETE_SPEED = 45;
+  const PAUSE_AFTER_TYPE = 1800;
+  const PAUSE_AFTER_DELETE = 300;
+
+  function tick() {
+    const current = words[wordIndex];
+
+    if (!deleting) {
+      charIndex++;
+      el.textContent = current.slice(0, charIndex);
+      if (charIndex === current.length) {
+        deleting = true;
+        setTimeout(tick, PAUSE_AFTER_TYPE);
+        return;
+      }
+      setTimeout(tick, TYPE_SPEED);
+    } else {
+      charIndex--;
+      el.textContent = current.slice(0, charIndex);
+      if (charIndex === 0) {
+        deleting = false;
+        wordIndex = (wordIndex + 1) % words.length;
+        setTimeout(tick, PAUSE_AFTER_DELETE);
+        return;
+      }
+      setTimeout(tick, DELETE_SPEED);
+    }
+  }
+
+  tick();
+</script>
