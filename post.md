@@ -203,13 +203,32 @@ This is why mandex doesn't need perfect search ranking to be useful. Search qual
 
 ## Getting started
 
-Mandex is written in Rust. The CLI is a single static binary called `mx`.
+Mandex is written in Rust. The CLI is a single static binary called `mx`. The installer is interactive and sets up your AI coding assistant integrations automatically.
 
 ```bash
 curl -fsSL https://mandex.dev/install.sh | sh
+```
 
+The installer detects which AI coding assistants you have installed — Claude Code, Cursor, Windsurf, Codex — and asks whether to configure each one. For Claude Code it installs a skill that tells Claude to consult local docs before generating code. For Cursor and Windsurf it appends rules to the appropriate config files. For Codex it adds instructions to `~/.codex/AGENTS.md`.
+
+For non-interactive installation (CI, agents, scripted setups):
+
+```bash
+# Auto-detect and configure everything
+curl -fsSL https://mandex.dev/install.sh | sh -s -- --yes
+
+# Specific integrations only
+curl -fsSL https://mandex.dev/install.sh | sh -s -- --yes --claude-code --codex
+
+# Binary only, no integrations
+curl -fsSL https://mandex.dev/install.sh | sh -s -- --none
+```
+
+Once installed:
+
+```bash
 cd your-project
-mx sync
+mx sync               # installs docs for all detected dependencies
 mx search nextjs "middleware"
 ```
 

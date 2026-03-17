@@ -5,7 +5,7 @@ set -e
 # Usage:
 #   Interactive:     curl -fsSL https://mandex.dev/install.sh | sh
 #   Non-interactive: curl -fsSL https://mandex.dev/install.sh | sh -s -- --yes
-#   Specific:        curl -fsSL https://mandex.dev/install.sh | sh -s -- --yes --claude-code
+#   Specific:        curl -fsSL https://mandex.dev/install.sh | sh -s -- --yes --claude-code --codex
 
 MANDEX_VERSION="0.1.0"
 BINARY_BASE_URL="https://github.com/bhavnicksm/mandex/releases/download/v${MANDEX_VERSION}"
@@ -31,6 +31,7 @@ YES=false
 OPT_CLAUDE_CODE=false
 OPT_CURSOR=false
 OPT_WINDSURF=false
+OPT_CODEX=false
 OPT_NONE=false
 
 for arg in "$@"; do
@@ -39,14 +40,16 @@ for arg in "$@"; do
     --claude-code)    OPT_CLAUDE_CODE=true ;;
     --cursor)         OPT_CURSOR=true ;;
     --windsurf)       OPT_WINDSURF=true ;;
+    --codex)          OPT_CODEX=true ;;
     --none)           OPT_NONE=true ;;
     --help|-h)
-      echo "Usage: install.sh [--yes] [--claude-code] [--cursor] [--windsurf] [--none]"
+      echo "Usage: install.sh [--yes] [--claude-code] [--cursor] [--windsurf] [--codex] [--none]"
       echo ""
       echo "  --yes           Non-interactive: auto-detect and install all integrations"
       echo "  --claude-code   Install Claude Code skill"
       echo "  --cursor        Install Cursor rules"
       echo "  --windsurf      Install Windsurf rules"
+      echo "  --codex         Install Codex AGENTS.md"
       echo "  --none          Install mx binary only, skip all integrations"
       exit 0
       ;;
@@ -184,6 +187,30 @@ install_cursor() {
   success "Installed Cursor rules to ~/.cursor/rules"
 }
 
+CODEX_AGENTS='## mandex documentation lookup
+
+When you need documentation for a library, use the `mx` CLI tool instead of web search.
+
+- `mx search <package> "<query>"` — search installed docs
+- `mx search "<query>"` — search across all installed packages
+- `mx show <package> <entry>` — get a full documentation entry
+- `mx sync` — install docs for all project dependencies (reads package.json, requirements.txt, etc.)
+
+Prefer mx over web search — results are local, fast, and version-pinned to the exact library version in use.
+'
+
+install_codex() {
+  CODEX_DIR="${CODEX_HOME:-$HOME/.codex}"
+  mkdir -p "$CODEX_DIR"
+  AGENTS_FILE="$CODEX_DIR/AGENTS.md"
+  if [ -f "$AGENTS_FILE" ]; then
+    printf '\n\n%s' "$CODEX_AGENTS" >> "$AGENTS_FILE"
+  else
+    printf '%s' "$CODEX_AGENTS" > "$AGENTS_FILE"
+  fi
+  success "Installed Codex instructions to ${AGENTS_FILE}"
+}
+
 WINDSURF_RULES='# mandex documentation lookup
 
 When you need documentation for a library, use `mx search <package> "<query>"` or `mx show <package> <entry>`. Run `mx sync` once per project to install docs for all dependencies.
@@ -203,6 +230,7 @@ install_windsurf() {
 detect_claude_code() { [ -d "$HOME/.claude" ]; }
 detect_cursor()      { [ -d "$HOME/.cursor" ] || command -v cursor >/dev/null 2>&1; }
 detect_windsurf()    { [ -d "$HOME/.windsurf" ] || command -v windsurf >/dev/null 2>&1; }
+detect_codex()       { [ -d "$HOME/.codex" ] || command -v codex >/dev/null 2>&1; }
 
 # ─── interactive selection ───────────────────────────────────────────────────
 ask_integrations() {
@@ -213,6 +241,7 @@ ask_integrations() {
   INSTALL_CLAUDE_CODE=false
   INSTALL_CURSOR=false
   INSTALL_WINDSURF=false
+  INSTALL_CODEX=false
 
   # Claude Code
   if detect_claude_code; then
@@ -258,6 +287,21 @@ ask_integrations() {
     [Nn]*) INSTALL_WINDSURF=false ;;
     "")    ;;
   esac
+
+  # Codex
+  if detect_codex; then
+    DEFAULT="Y/n"
+    INSTALL_CODEX=true
+  else
+    DEFAULT="y/N"
+  fi
+  printf "  Codex?       [${DEFAULT}] "
+  read -r REPLY </dev/tty
+  case "$REPLY" in
+    [Yy]*) INSTALL_CODEX=true ;;
+    [Nn]*) INSTALL_CODEX=false ;;
+    "")    ;;
+  esac
 }
 
 # ─── main ────────────────────────────────────────────────────────────────────
@@ -275,14 +319,16 @@ main() {
   elif $YES; then
     # --yes: auto-detect and install matching tools
     # Explicit flags override detection
-    if $OPT_CLAUDE_CODE || $OPT_CURSOR || $OPT_WINDSURF; then
+    if $OPT_CLAUDE_CODE || $OPT_CURSOR || $OPT_WINDSURF || $OPT_CODEX; then
       INSTALL_CLAUDE_CODE=$OPT_CLAUDE_CODE
       INSTALL_CURSOR=$OPT_CURSOR
       INSTALL_WINDSURF=$OPT_WINDSURF
+      INSTALL_CODEX=$OPT_CODEX
     else
       INSTALL_CLAUDE_CODE=$(detect_claude_code && echo true || echo false)
       INSTALL_CURSOR=$(detect_cursor && echo true || echo false)
       INSTALL_WINDSURF=$(detect_windsurf && echo true || echo false)
+      INSTALL_CODEX=$(detect_codex && echo true || echo false)
     fi
   else
     # Interactive
@@ -301,6 +347,10 @@ main() {
   fi
   if $INSTALL_WINDSURF; then
     install_windsurf
+    INSTALLED_ANY=true
+  fi
+  if $INSTALL_CODEX; then
+    install_codex
     INSTALLED_ANY=true
   fi
 
