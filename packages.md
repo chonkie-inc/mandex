@@ -51,6 +51,29 @@ Libraries to prioritize for the initial mandex registry. Ordered by likely deman
 
 ---
 
+## Version Coverage
+
+Which versions to index per package, prioritized by adoption.
+
+| Package | Versions to index | Currently indexed | Notes |
+|---------|------------------|-------------------|-------|
+| nextjs | 13.x, 14.x, 15.x | 15.0.0 ✅ | 13→14 App Router introduction, 14→15 major changes |
+| react | 18.x, 19.x | 19.0.0 ✅ | v18 hooks/Suspense, v19 Server Components |
+| tailwindcss | 3.x, 4.x | 4.0.0 ✅ | v4 is a near-complete rewrite of v3 |
+| pydantic | v1 (1.10.x), v2 (2.x) | 2.0.0 ✅ | v1→v2 was a complete rewrite, many projects still on v1 |
+| langchain | 0.1.x, 0.2.x, 0.3.x | 0.3.0 ✅ | API changed significantly at each minor |
+| fastapi | 0.100.x, 0.115.x | 0.115.0 ✅ | Relatively stable, latest is sufficient for now |
+| pytorch | 2.0.x, 2.1.x, 2.3.x | 2.3.0 ✅ | 2.0 was torch.compile, 2.1+ widely in prod |
+| transformers | 4.36.x, 4.40.x | 4.40.0 ✅ | Pipelines API stable, point releases fine |
+| drizzle | 0.30.x, 0.36.x | 0.36.0 ✅ | Fast-moving, query API changed between versions |
+| ai-sdk | 3.x, 4.x | 4.0.0 ✅ | v4 restructured the API significantly |
+| hono | 4.x | 4.0.0 ✅ | Stable, latest sufficient |
+| langgraph | 0.2.x, 0.3.x | 0.3.0 ✅ | Fast-moving agent API |
+
+**Total target:** ~20 additional versions on top of the 12 currently indexed.
+
+---
+
 ## Build Strategy
 
 **Clone & build:** Most packages have docs in a GitHub repo we can clone and run `mx build ./docs` against.
