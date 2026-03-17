@@ -191,6 +191,16 @@ A library like PyTorch has thousands of API entries. The resulting `.db` file mi
 
 Mandex doesn't solve the problem of documentation going stale if authors don't publish updated packages. It moves the responsibility to the library maintainer, which is where it belongs — they're already responsible for keeping their docs current. The build-and-publish step can be integrated into CI/CD, so publishing a new mandex package is part of the release process rather than a separate manual step.
 
+## A note on sub-agents
+
+Search has an inherent ceiling. Local FTS5 ranking can surface the right sections, but it can't synthesize across them — and for complex questions, the answer often lives across three or four separate documentation entries.
+
+Sub-agents change this. An agent like Claude Code can run four or five `mx search` calls in parallel, read the results, and reason across them to produce a complete, accurate answer. The sub-agent does the synthesis; mandex provides the raw material. The combination is more useful than either alone.
+
+The practical pattern looks like this: when Claude Code needs to generate code using a library, it spawns a sub-agent that runs targeted searches against the local mandex packages, reads the relevant sections, and returns a synthesis. The main agent uses that synthesis to write the code. This is faster and more accurate than web fetching, works offline, and produces answers grounded in the exact version of the library the project is using.
+
+This is why mandex doesn't need perfect search ranking to be useful. Search quality matters at the margins — better ranking means less noise for the sub-agent to filter. But even imperfect search results over local, version-pinned documentation beat the alternative of asking an agent to hallucinate from stale training data.
+
 ## Getting started
 
 Mandex is written in Rust. The CLI is a single static binary called `mx`.
