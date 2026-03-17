@@ -4,7 +4,7 @@ import Terminal from '../components/Terminal.astro';
 ---
 
 <Layout title="mandex - documentation packages for AI agents">
-  <section class="max-w-4xl mx-auto px-6 pt-16 pb-8 text-center">
+  <section class="max-w-5xl mx-auto px-6 pt-16 pb-8 text-center">
     <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-tight" style="color: var(--color-text);">
       Docs shouldn't need an API.
     </h1>
@@ -14,12 +14,14 @@ import Terminal from '../components/Terminal.astro';
   </section>
 
   <!-- Terminal hero -->
-  <section class="max-w-3xl mx-auto px-6 pb-8">
-    <Terminal />
+  <section class="max-w-5xl mx-auto px-6 pb-8">
+    <div class="max-w-3xl mx-auto">
+      <Terminal />
+    </div>
   </section>
 
   <!-- CTA -->
-  <section class="max-w-3xl mx-auto px-6 pb-16">
+  <section class="max-w-5xl mx-auto px-6 pb-16">
     <div class="flex flex-col items-center gap-3">
       <a href="/about" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-colors" style="background-color: var(--color-text); color: var(--color-background);">
         Read the full post
