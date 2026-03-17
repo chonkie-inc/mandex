@@ -15,7 +15,7 @@
     </span>
   </div>
   <!-- Terminal body -->
-  <div id="terminal" class="terminal-body">
+  <div id="terminal" class="terminal-body" onwheel="event.stopPropagation()">
     <div id="terminal-lines"></div>
     <div id="cursor-line" class="flex">
       <span class="terminal-prompt">$</span>&nbsp;<span id="typing-target"></span><span id="cursor" class="cursor-blink">&#9608;</span>
