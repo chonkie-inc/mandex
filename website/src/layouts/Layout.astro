@@ -20,7 +20,7 @@ const { title, description = "Documentation packages for AI agents. Local, versi
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
-  <body class="min-h-screen antialiased">
+  <body class="min-h-screen antialiased flex flex-col">
     <nav class="border-b" style="border-color: var(--color-border); background-color: var(--color-alpha-background); backdrop-filter: blur(6px);" >
       <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
         <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -83,21 +83,17 @@ const { title, description = "Documentation packages for AI agents. Local, versi
       </div>
     </nav>
 
-    <main>
+    <main class="flex-1">
       <slot />
     </main>
 
-    <footer class="mt-16">
-      <div class="max-w-5xl mx-auto px-6 py-8 text-sm flex items-center justify-center gap-3" style="color: var(--color-text-tertiary);">
-        <span class="flex-1 h-px" style="background-color: var(--color-border);"></span>
-        <span class="flex items-center gap-1.5 shrink-0">
-          proudly made by
-          <a href="https://chonkie.ai" target="_blank" rel="noopener" class="inline-flex items-center hover:opacity-80 transition-opacity">
-            <img src="/chonkie-icon.png" alt="Chonkie" class="h-5 w-auto" />
-          </a>
-          with love and care
-        </span>
-        <span class="flex-1 h-px" style="background-color: var(--color-border);"></span>
+    <footer class="mt-auto">
+      <div class="py-8 flex items-center justify-center">
+        <a href="https://chonkie.ai" target="_blank" rel="noopener" class="footer-logo-link text-sm" style="color: var(--color-text-tertiary);">
+          <span class="footer-text-left">proudly made by</span>
+          <img src="/chonkie-icon.png" alt="Chonkie" class="h-8 w-auto" />
+          <span class="footer-text-right">with love and care</span>
+        </a>
       </div>
     </footer>
 
@@ -118,6 +114,36 @@ const { title, description = "Documentation packages for AI agents. Local, versi
       .nav-icon-btn:hover {
         background-color: var(--color-background-secondary);
         color: var(--color-text);
+      }
+
+      /* Footer hover reveal */
+      .footer-logo-link {
+        display: grid;
+        grid-template-columns: 0fr auto 0fr;
+        align-items: center;
+        transition: grid-template-columns 0.35s ease;
+      }
+      .footer-text-left,
+      .footer-text-right {
+        overflow: hidden;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.35s ease, padding 0.35s ease;
+      }
+      .footer-text-left { text-align: right; }
+
+      .footer-logo-link:hover {
+        grid-template-columns: 1fr auto 1fr;
+      }
+      .footer-logo-link:hover .footer-text-left,
+      .footer-logo-link:hover .footer-text-right {
+        opacity: 1;
+      }
+      .footer-logo-link:hover .footer-text-left {
+        padding-right: 0.5rem;
+      }
+      .footer-logo-link:hover .footer-text-right {
+        padding-left: 0.5rem;
       }
     </style>
 

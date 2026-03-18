@@ -3,6 +3,14 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Registry - mandex" description="Browse available documentation packages.">
+<style>
+  .package-item:hover {
+    background-color: var(--color-background) !important;
+  }
+  #package-scroll::-webkit-scrollbar { width: 4px; }
+  #package-scroll::-webkit-scrollbar-track { background: transparent; }
+  #package-scroll::-webkit-scrollbar-thumb { background-color: var(--color-border); border-radius: 2px; }
+</style>
   <section class="max-w-5xl mx-auto px-6 py-16">
     <h1 class="text-3xl font-bold mb-2" style="color: var(--color-text);">Registry</h1>
     <p class="mb-6" style="color: var(--color-text-secondary);">
@@ -21,19 +29,26 @@ import Layout from '../layouts/Layout.astro';
       />
     </div>
 
-    <!-- Loading state -->
-    <div id="loading" class="text-center py-8 text-sm" style="color: var(--color-text-tertiary);">
-      Loading packages...
+    <!-- Scrollable package box -->
+    <div id="package-box" class="rounded-xl border overflow-hidden" style="border-color: var(--color-border);">
+      <!-- Loading state -->
+      <div id="loading" class="text-center py-8 text-sm" style="color: var(--color-text-tertiary);">
+        Loading packages...
+      </div>
+
+      <!-- Scrollable list -->
+      <div id="package-scroll" class="overflow-y-auto" style="max-height: 480px; display: none;">
+        <div id="package-list" class="grid gap-0 divide-y" style="border-color: var(--color-border);"></div>
+        <!-- Sentinel for infinite scroll -->
+        <div id="scroll-sentinel" class="h-1"></div>
+      </div>
+
+      <div id="no-results" class="hidden py-8 text-center text-sm" style="color: var(--color-text-tertiary);">
+        No packages match your search.
+      </div>
     </div>
 
-    <!-- Package list (populated by JS) -->
-    <div id="package-list" class="grid gap-3"></div>
-
-    <div id="no-results" class="hidden mt-8 text-center text-sm" style="color: var(--color-text-tertiary);">
-      No packages match your search.
-    </div>
-
-    <div class="mt-12 rounded-lg p-6 text-center border" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+    <div class="mt-6 rounded-lg p-5 text-center border" style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
       <p class="text-sm" style="color: var(--color-text-secondary);">
         Want your library listed here?
         <a href="https://github.com/bhavnicksm/mandex" class="underline underline-offset-2" style="color: var(--color-accent);" target="_blank" rel="noopener">
@@ -67,85 +82,115 @@ import Layout from '../layouts/Layout.astro';
     return `${(bytes / 1048576).toFixed(1)} MB`;
   }
 
-  function renderPackage(pkg: Package): string {
+  function renderPackage(pkg: Package): HTMLElement {
     const colors = ecosystemColors[pkg.ecosystem] || {
       bg: 'transparent',
       text: 'var(--color-text-tertiary)',
       border: 'var(--color-border)',
     };
 
-    return `
-      <div class="package-item flex items-center justify-between rounded-lg px-5 py-4 border"
-           style="background-color: var(--color-background-secondary); border-color: var(--color-border);"
-           data-name="${pkg.name}" data-description="${pkg.description}" data-ecosystem="${pkg.ecosystem}">
-        <div>
-          <div class="flex items-center gap-3">
-            <span class="font-medium" style="color: var(--color-text);">${pkg.name}</span>
-            <span class="text-xs font-mono" style="color: var(--color-text-tertiary);">v${pkg.latest_version}</span>
-            <span class="text-xs px-2 py-0.5 rounded-full border font-mono"
-                  style="background-color: ${colors.bg}; color: ${colors.text}; border-color: ${colors.border};">
-              ${pkg.ecosystem}
-            </span>
-          </div>
-          <p class="text-sm mt-1" style="color: var(--color-text-tertiary);">${pkg.description}</p>
+    const a = document.createElement('a');
+    a.href = `/packages/${pkg.name}`;
+    a.className = 'package-item flex items-center justify-between px-5 py-4 transition-colors';
+    a.style.cssText = 'background-color: var(--color-background-secondary); border-bottom: 1px solid var(--color-border); text-decoration: none;';
+    // Use dataset/setAttribute so description/name can't break out of attribute context
+    a.dataset.name = pkg.name;
+    a.dataset.description = pkg.description;
+    a.dataset.ecosystem = pkg.ecosystem;
+
+    a.innerHTML = `
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="font-medium" style="color: var(--color-text);"></span>
+          <span class="text-xs font-mono" style="color: var(--color-text-tertiary);">v${pkg.latest_version}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full border font-mono"
+                style="background-color: ${colors.bg}; color: ${colors.text}; border-color: ${colors.border};">
+            ${pkg.ecosystem}
+          </span>
         </div>
-        <div class="flex items-center gap-6 text-xs font-mono shrink-0 ml-4" style="color: var(--color-text-tertiary);">
-          <span>${pkg.entry_count} entries</span>
-          <span>${formatSize(pkg.size_bytes)}</span>
-        </div>
+        <p class="text-sm mt-1" style="color: var(--color-text-tertiary);"></p>
+      </div>
+      <div class="flex items-center gap-6 text-xs font-mono shrink-0 ml-4" style="color: var(--color-text-tertiary);">
+        <span>${pkg.entry_count} entries</span>
+        <span>${formatSize(pkg.size_bytes)}</span>
       </div>
     `;
+    // Set text content via DOM to avoid injection
+    a.querySelector<HTMLElement>('.font-medium')!.textContent = pkg.name;
+    a.querySelector<HTMLElement>('.text-sm.mt-1')!.textContent = pkg.description;
+
+    return a;
   }
 
   const listEl = document.getElementById('package-list')!;
   const loadingEl = document.getElementById('loading')!;
+  const scrollEl = document.getElementById('package-scroll')!;
   const noResultsEl = document.getElementById('no-results')!;
+  const sentinelEl = document.getElementById('scroll-sentinel')!;
   const searchEl = document.getElementById('package-search') as HTMLInputElement;
 
-  // Fetch packages from API (with fallback)
-  async function loadPackages() {
-    const urls = [
-      'https://api.mandex.dev/packages',
-    ];
+  const PAGE_SIZE = 10;
+  let allPackages: Package[] = [];
+  let filteredPackages: Package[] = [];
+  let renderedCount = 0;
+  let observer: IntersectionObserver | null = null;
 
-    for (const url of urls) {
-      try {
-        const res = await fetch(url);
-        if (res.ok) {
-          const packages: Package[] = await res.json();
-          loadingEl.style.display = 'none';
-          listEl.innerHTML = packages.map(renderPackage).join('');
-          setupSearch();
-          return;
-        }
-      } catch {
-        continue;
-      }
+  function renderNextPage() {
+    const batch = filteredPackages.slice(renderedCount, renderedCount + PAGE_SIZE);
+    batch.forEach(pkg => listEl.appendChild(renderPackage(pkg)));
+    renderedCount += batch.length;
+
+    // Disconnect observer if all rendered
+    if (renderedCount >= filteredPackages.length && observer) {
+      observer.disconnect();
     }
+  }
 
-    loadingEl.textContent = 'Failed to load packages. Try refreshing.';
+  function setupObserver() {
+    observer?.disconnect();
+    observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) renderNextPage(); },
+      { root: scrollEl, threshold: 0.1 }
+    );
+    observer.observe(sentinelEl);
+  }
+
+  function applyFilter(q: string) {
+    const query = q.toLowerCase().trim();
+    filteredPackages = query
+      ? allPackages.filter(pkg =>
+          pkg.name.toLowerCase().includes(query) ||
+          pkg.description.toLowerCase().includes(query) ||
+          pkg.ecosystem.toLowerCase().includes(query)
+        )
+      : allPackages;
+
+    listEl.innerHTML = '';
+    renderedCount = 0;
+    renderNextPage();
+    setupObserver();
+
+    noResultsEl.classList.toggle('hidden', filteredPackages.length > 0);
+  }
+
+  async function loadPackages() {
+    try {
+      const res = await fetch('https://api.mandex.dev/packages');
+      if (!res.ok) throw new Error('failed');
+      allPackages = await res.json();
+      filteredPackages = allPackages;
+
+      loadingEl.style.display = 'none';
+      scrollEl.style.display = 'block';
+
+      renderNextPage();
+      setupObserver();
+
+      searchEl?.addEventListener('input', () => applyFilter(searchEl.value));
+    } catch {
+      loadingEl.textContent = 'Failed to load packages. Try refreshing.';
+    }
   }
 
   loadPackages();
-
-  function setupSearch() {
-    searchEl?.addEventListener('input', () => {
-      const q = searchEl.value.toLowerCase().trim();
-      const items = document.querySelectorAll('.package-item');
-      let visible = 0;
-
-      items.forEach((item) => {
-        const el = item as HTMLElement;
-        const name = el.dataset.name?.toLowerCase() || '';
-        const desc = el.dataset.description?.toLowerCase() || '';
-        const eco = el.dataset.ecosystem?.toLowerCase() || '';
-        const match = !q || name.includes(q) || desc.includes(q) || eco.includes(q);
-
-        el.style.display = match ? '' : 'none';
-        if (match) visible++;
-      });
-
-      noResultsEl.classList.toggle('hidden', visible > 0);
-    });
-  }
 </script>

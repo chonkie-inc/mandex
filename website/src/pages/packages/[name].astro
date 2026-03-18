@@ -1,0 +1,276 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  try {
+    const res = await fetch('https://api.mandex.dev/packages');
+    if (res.ok) {
+      const packages: { name: string }[] = await res.json();
+      return packages.map((pkg) => ({ params: { name: pkg.name } }));
+    }
+  } catch {
+    // API unreachable at build time — return empty so build succeeds
+  }
+  return [];
+}
+
+const { name } = Astro.params;
+---
+
+<Layout title={`${name} — mandex`} description={`Documentation package for ${name} on mandex.`}>
+  <section class="max-w-5xl mx-auto px-6 py-12">
+
+    <!-- Loading state -->
+    <div id="pkg-loading" class="text-center py-20 text-sm" style="color: var(--color-text-tertiary);">
+      Loading...
+    </div>
+
+    <!-- Not found state -->
+    <div id="pkg-notfound" style="display:none;" class="text-center py-20">
+      <p class="text-lg font-semibold mb-2" style="color: var(--color-text);">Package not found</p>
+      <p class="text-sm mb-6" style="color: var(--color-text-tertiary);">
+        <code class="font-mono px-1.5 py-0.5 rounded" style="background-color: var(--color-code-bg); color: var(--color-accent);" id="pkg-notfound-name"></code>
+        is not in the mandex registry.
+      </p>
+      <a href="/registry" class="text-sm underline underline-offset-2" style="color: var(--color-accent);">
+        Browse all packages →
+      </a>
+    </div>
+
+    <!-- Package content -->
+    <div id="pkg-content" style="display:none;" class="flex flex-col gap-5">
+
+      <!-- Header card -->
+      <div id="pkg-header-card" class="rounded-lg border px-7 py-6 relative"
+           style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+
+        <!-- Copy button — top right -->
+        <button id="pkg-copy-btn" class="absolute top-5 right-5 p-1.5 rounded-lg transition-all hover:opacity-70"
+                style="color: var(--color-text-tertiary);"
+                title="Copy install command">
+          <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+          </svg>
+          <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none; color: var(--color-accent);">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </button>
+
+        <!-- Name + badge on one line -->
+        <div class="flex items-center gap-3 mb-2 flex-wrap pr-24">
+          <h1 id="pkg-name" class="text-3xl font-bold tracking-tight" style="color: var(--color-text);"></h1>
+          <span id="pkg-ecosystem-badge" class="inline-block text-xs px-2 py-0.5 rounded-full border font-mono" style="position: relative; top: 1px;"></span>
+        </div>
+
+        <p id="pkg-description" class="text-sm leading-relaxed mb-5" style="color: var(--color-text-secondary);"></p>
+
+        <!-- Compact single-line stats -->
+        <div class="flex items-center gap-2 text-xs flex-wrap" style="color: var(--color-text-tertiary);">
+          <span class="font-mono" style="color: var(--color-text-secondary);">Latest: </span><span id="pkg-stat-latest" class="font-mono font-medium" style="color: var(--color-text);"></span>
+          <span style="color: var(--color-border);">·</span>
+          <span id="pkg-stat-versions" class="font-mono font-medium" style="color: var(--color-text);"></span><span> versions</span>
+          <span style="color: var(--color-border);">·</span>
+          <span>Updated </span><span id="pkg-stat-updated" class="font-mono" style="color: var(--color-text-secondary);"></span>
+        </div>
+
+      </div>
+
+      <!-- Versions card -->
+      <div class="rounded-lg border overflow-hidden"
+           style="background-color: var(--color-background-secondary); border-color: var(--color-border);">
+
+        <!-- Card header with search -->
+        <div class="px-5 py-3 flex items-center justify-between gap-4 border-b"
+             style="border-color: var(--color-border);">
+          <h2 class="text-sm font-semibold" style="color: var(--color-text);">Versions</h2>
+          <input
+            id="version-search"
+            type="text"
+            placeholder="Search versions..."
+            class="text-sm outline-none transition-colors rounded-lg px-3 py-1.5 w-44"
+            style="background-color: var(--color-background); border: 1px solid var(--color-border); color: var(--color-text);"
+          />
+        </div>
+
+        <!-- Version rows -->
+        <div id="pkg-versions"></div>
+        <p id="no-versions" class="hidden text-sm text-center py-8" style="color: var(--color-text-tertiary);">No versions match.</p>
+      </div>
+
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* Version row hover */
+  .version-row:hover {
+    background-color: var(--color-background) !important;
+  }
+
+  /* Version search focus */
+  #version-search:focus {
+    border-color: var(--color-accent);
+  }
+</style>
+
+<script>
+  const ecosystemColors: Record<string, { bg: string; text: string; border: string; accent: string }> = {
+    npm:   { bg: 'rgba(239,68,68,0.08)',   text: '#ef4444', border: 'rgba(239,68,68,0.25)',   accent: '#ef4444' },
+    pip:   { bg: 'rgba(59,130,246,0.08)',  text: '#3b82f6', border: 'rgba(59,130,246,0.25)',  accent: '#3b82f6' },
+    cargo: { bg: 'rgba(249,115,22,0.08)',  text: '#f97316', border: 'rgba(249,115,22,0.25)',  accent: '#f97316' },
+    go:    { bg: 'rgba(6,182,212,0.08)',   text: '#06b6d4', border: 'rgba(6,182,212,0.25)',   accent: '#06b6d4' },
+  };
+
+  interface Version {
+    version: string;
+    entry_count: number;
+    size_bytes: number;
+    published_at: string;
+  }
+
+  interface Package {
+    name: string;
+    description: string;
+    ecosystem: string;
+    versions: Version[];
+  }
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  }
+
+  function formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function flashCopied(btn: Element, labelEl: Element | null) {
+    const copyIcon = btn.querySelector('.copy-icon') as HTMLElement | null;
+    const checkIcon = btn.querySelector('.check-icon') as HTMLElement | null;
+    if (copyIcon) copyIcon.style.display = 'none';
+    if (checkIcon) checkIcon.style.display = 'block';
+    if (labelEl) labelEl.textContent = 'copied!';
+    setTimeout(() => {
+      if (copyIcon) copyIcon.style.display = 'block';
+      if (checkIcon) checkIcon.style.display = 'none';
+      if (labelEl) labelEl.textContent = 'copy';
+    }, 1500);
+  }
+
+  function renderPackage(pkg: Package) {
+    document.getElementById('pkg-loading')!.style.display = 'none';
+    document.getElementById('pkg-notfound')!.style.display = 'none';
+    document.getElementById('pkg-content')!.style.display = 'flex';
+
+    const colors = ecosystemColors[pkg.ecosystem] || {
+      bg: 'transparent', text: 'var(--color-text-tertiary)',
+      border: 'var(--color-border)', accent: 'var(--color-accent)',
+    };
+
+    // Ecosystem badge
+    const badge = document.getElementById('pkg-ecosystem-badge')!;
+    badge.textContent = pkg.ecosystem;
+    badge.style.backgroundColor = colors.bg;
+    badge.style.color = colors.text;
+    badge.style.borderColor = colors.border;
+
+
+    // Name & description
+    document.getElementById('pkg-name')!.textContent = pkg.name;
+    document.getElementById('pkg-description')!.textContent = pkg.description;
+
+    // Sort once, reuse for both stats and version list
+    const versions = pkg.versions
+      .map(v => ({ ...v, _ts: new Date(v.published_at).getTime() }))
+      .sort((a, b) => b._ts - a._ts);
+
+    const latest = versions[0];
+    document.getElementById('pkg-stat-latest')!.textContent = `v${latest.version}`;
+    document.getElementById('pkg-stat-versions')!.textContent = `${pkg.versions.length}`;
+    document.getElementById('pkg-stat-updated')!.textContent = formatDate(latest.published_at);
+
+    // Copy button
+    const installCmd = `mx pull ${pkg.name}`;
+    const copyBtn = document.getElementById('pkg-copy-btn')!;
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(installCmd).then(() => flashCopied(copyBtn, null));
+    });
+
+    // Version rows — wire listeners during build, no querySelectorAll round-trip
+    const versionsEl = document.getElementById('pkg-versions')!;
+    versionsEl.innerHTML = '';
+
+    versions.forEach((v, i) => {
+      const vCmd = `mx pull ${pkg.name}@${v.version}`;
+      const row = document.createElement('div');
+      row.className = 'version-row px-5 py-3.5 flex items-center justify-between gap-4 transition-colors cursor-default';
+      row.dataset.version = v.version;
+      if (i < versions.length - 1) {
+        row.style.borderBottom = '1px solid var(--color-border)';
+      }
+
+      row.innerHTML = `
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="font-mono font-semibold text-sm tabular-nums" style="color: var(--color-text);">v${v.version}</span>
+          ${i === 0 ? `<span class="text-xs px-2 py-0.5 rounded-full font-mono shrink-0" style="background-color: rgba(5,150,105,0.1); color: #059669; border: 1px solid rgba(5,150,105,0.2);">latest</span>` : ''}
+        </div>
+        <div class="flex items-center gap-5 ml-auto">
+          <span class="text-xs tabular-nums text-right" style="color: var(--color-text-tertiary);">${v.entry_count.toLocaleString()} entries</span>
+          <span class="text-xs tabular-nums text-right w-16" style="color: var(--color-text-tertiary);">${formatSize(v.size_bytes)}</span>
+          <span class="text-xs text-right w-24" style="color: var(--color-text-tertiary);">${formatDate(v.published_at)}</span>
+          <button class="version-copy-btn p-1 rounded transition-all hover:opacity-70" style="color: var(--color-text-tertiary);">
+            <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+            <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none; color: var(--color-accent);">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </button>
+        </div>
+      `;
+
+      // Wire copy listener during build — no DOM re-query needed
+      const btn = row.querySelector('.version-copy-btn')!;
+      btn.setAttribute('title', `Copy ${vCmd}`);
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(vCmd).then(() => flashCopied(btn, null));
+      });
+
+      versionsEl.appendChild(row);
+    });
+  }
+
+  const pkgName = window.location.pathname.split('/').filter(Boolean).pop() || '';
+
+  // Wire version search once — outside renderPackage to avoid listener accumulation
+  const versionSearch = document.getElementById('version-search') as HTMLInputElement;
+  const versionsEl = document.getElementById('pkg-versions')!;
+  const noVersionsEl = document.getElementById('no-versions')!;
+  versionSearch?.addEventListener('input', () => {
+    const q = versionSearch.value.toLowerCase().trim();
+    const rows = versionsEl.querySelectorAll('.version-row');
+    let visible = 0;
+    rows.forEach((row) => {
+      const v = (row as HTMLElement).dataset.version || '';
+      const match = !q || v.includes(q);
+      (row as HTMLElement).style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    noVersionsEl.classList.toggle('hidden', visible > 0);
+  });
+
+  fetch(`https://api.mandex.dev/packages/${pkgName}`)
+    .then((r) => {
+      if (!r.ok) throw new Error('not found');
+      return r.json();
+    })
+    .then(renderPackage)
+    .catch(() => {
+      document.getElementById('pkg-loading')!.style.display = 'none';
+      const nf = document.getElementById('pkg-notfound')!;
+      nf.style.display = 'block';
+      const nameEl = document.getElementById('pkg-notfound-name');
+      if (nameEl) nameEl.textContent = pkgName;
+    });
+</script>
