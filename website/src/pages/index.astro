@@ -136,6 +136,17 @@ for (let r = 0; r < ROWS; r++) {
     </div>
   </div>
 
+  <!-- Floating chonkie logo -->
+  <a
+    href="https://chonkie.ai"
+    target="_blank"
+    rel="noopener"
+    class="fixed bottom-8 right-8 z-50 transition-opacity hover:opacity-80"
+    style="pointer-events: auto;"
+  >
+    <img src="/chonkie-icon.png" alt="chonkie" class="h-14 object-contain" style="animation: spin 20s linear infinite;" />
+  </a>
+
   <script is:inline>
     document.getElementById('hero-copy')?.addEventListener('click', function() {
       var cmd = 'curl -fsSL https://mandex.dev/install.sh | sh';

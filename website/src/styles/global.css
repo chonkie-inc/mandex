@@ -135,6 +135,12 @@ code, pre, .font-mono {
   background-color: var(--color-background-secondary);
 }
 
+/* ── Spin ── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* ── Selection ── */
 ::selection {
   background: var(--color-text);
