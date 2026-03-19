@@ -125,32 +125,14 @@ code, pre, .font-mono {
 }
 
 
-/* ── Grid background with center hole ── */
-.grid-bg {
-  --cell: calc((100vw - 96px) / 8);
-  position: relative;
+/* ── Package cell ── */
+.pkg-cell {
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
 }
-.grid-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
-  background-size: var(--cell) var(--cell);
-}
-.grid-bg::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-  background-color: var(--color-background);
-  /* Horizontal: center 4 columns (columns 2-5 of 8) */
-  left: calc(var(--cell) * 2 + 1px);
-  width: calc(var(--cell) * 4 - 1px);
-  /* Vertical: set by JS */
-  top: var(--hole-top, 40%);
-  height: calc(var(--cell) * 3 - 1px);
+.pkg-cell:hover {
+  opacity: 1;
+  background-color: var(--color-background-secondary);
 }
 
 /* ── Selection ── */

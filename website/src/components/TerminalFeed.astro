@@ -162,7 +162,7 @@ const feedItems = [
         s.color = 'var(--color-text)';
         s.opacity = '0.45';
       } else if (type === 'success') {
-        html = text.replace(/✓/g, '<span style="opacity:0.8">✓</span>')
+        html = text.replace(/✓/g, '<span style="color:#059669">✓</span>')
                    .replace(/\(([^)]+)\)/g, '<span style="opacity:0.5">($1)</span>');
         s.color = 'var(--color-text)';
         s.opacity = '0.65';
@@ -181,8 +181,8 @@ const feedItems = [
       // Command line
       var cmdLine = createLine('');
       var prompt = document.createElement('span');
-      prompt.style.color = 'var(--color-text)';
-      prompt.style.opacity = '0.35';
+      prompt.style.color = '#059669';
+      prompt.style.opacity = '1';
       prompt.textContent = '$ ';
       cmdLine.appendChild(prompt);
 
