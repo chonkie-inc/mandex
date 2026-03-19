@@ -1,0 +1,258 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const res = await fetch('https://api.mandex.dev/packages');
+  const packages: { name: string }[] = await res.json();
+
+  const paths = await Promise.all(
+    packages.map(async (pkg) => {
+      const detailRes = await fetch(`https://api.mandex.dev/packages/${pkg.name}`);
+      const detail = await detailRes.json();
+      return {
+        params: { name: pkg.name },
+        props: { pkg: detail },
+      };
+    })
+  );
+
+  return paths;
+}
+
+interface Version {
+  version: string;
+  entry_count: number;
+  size_bytes: number;
+  published_at: string;
+}
+
+interface Package {
+  name: string;
+  description: string;
+  ecosystem: string;
+  source_url: string;
+  versions: Version[];
+}
+
+const { pkg } = Astro.props as { pkg: Package };
+
+const sortedVersions = [...pkg.versions].sort(
+  (a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+);
+const latestVersion = sortedVersions.length > 0 ? sortedVersions[0].version : null;
+
+function formatSize(bytes: number): string {
+  if (!bytes) return '\u2014';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatEntries(count: number): string {
+  if (!count) return '\u2014';
+  return count.toLocaleString();
+}
+---
+
+<Layout title={`${pkg.name} \u2014 mandex`} description={pkg.description}>
+  <div class="flex-1 flex flex-col min-h-0 overflow-y-auto">
+    <!-- Back link -->
+    <div
+      class="shrink-0 px-5 py-2.5 border-b"
+      style="border-color: var(--color-border);"
+    >
+      <a
+        href="/"
+        class="inline-flex items-center gap-1.5 text-[13px] font-mono transition-opacity hover:opacity-70"
+        style="color: var(--color-text-secondary);"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back to registry
+      </a>
+    </div>
+
+    <!-- Header section -->
+    <div class="shrink-0 px-5 py-6 border-b" style="border-color: var(--color-border);">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-3">
+            <h1
+              class="text-3xl md:text-4xl font-bold tracking-tight"
+              style="color: var(--color-text);"
+            >
+              {pkg.name}
+            </h1>
+            <span
+              class="font-mono text-[11px] font-medium uppercase tracking-widest px-2 py-0.5 border"
+              style="color: var(--color-text-secondary); border-color: var(--color-border); background-color: var(--color-background-secondary);"
+            >
+              {pkg.ecosystem}
+            </span>
+          </div>
+          <p
+            class="text-base leading-relaxed max-w-xl"
+            style="color: var(--color-text-secondary);"
+          >
+            {pkg.description}
+          </p>
+        </div>
+
+        {pkg.source_url && (
+          <a
+            href={pkg.source_url}
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 px-3 py-1.5 border text-[13px] font-mono transition-colors shrink-0"
+            style="border-color: var(--color-border); color: var(--color-text-secondary);"
+            onmouseenter="this.style.backgroundColor='var(--color-background-secondary)'"
+            onmouseleave="this.style.backgroundColor=''"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Source
+          </a>
+        )}
+      </div>
+    </div>
+
+    <!-- Install command -->
+    <div class="shrink-0 px-5 py-4 border-b" style="border-color: var(--color-border);">
+      <div class="flex items-center gap-2 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary);">
+          <polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>
+        </svg>
+        <span
+          class="text-[11px] font-mono font-medium uppercase tracking-widest"
+          style="color: var(--color-text-tertiary);"
+        >
+          Install
+        </span>
+      </div>
+      <div
+        class="flex items-center justify-between border px-4 py-3"
+        style="border-color: var(--color-border); background-color: var(--color-background-secondary);"
+      >
+        <code class="font-mono text-sm" style="color: var(--color-text);">
+          mx pull {pkg.name}
+        </code>
+        <button
+          id="copy-install"
+          class="shrink-0 p-1.5 cursor-pointer transition-opacity hover:opacity-70"
+          style="color: var(--color-text-secondary);"
+          title="Copy command"
+        >
+          <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+          </svg>
+          <svg id="check-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Versions table -->
+    <div class="flex-1 min-h-0 flex flex-col">
+      <div class="px-5 py-2.5 border-b shrink-0 flex items-center gap-2" style="border-color: var(--color-border);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary);">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/>
+        </svg>
+        <span
+          class="text-[11px] font-mono font-medium uppercase tracking-widest"
+          style="color: var(--color-text-tertiary);"
+        >
+          Versions
+        </span>
+        <span
+          class="text-[11px] font-mono ml-1"
+          style="color: var(--color-text-tertiary);"
+        >
+          ({sortedVersions.length})
+        </span>
+      </div>
+
+      <!-- Table header -->
+      <div
+        class="shrink-0 grid grid-cols-4 px-5 py-2 border-b font-mono text-[11px] font-medium uppercase tracking-widest"
+        style="border-color: var(--color-border); color: var(--color-text-tertiary);"
+      >
+        <span>Version</span>
+        <span class="text-right">Entries</span>
+        <span class="text-right">Size</span>
+        <span class="text-right">Published</span>
+      </div>
+
+      <!-- Table rows -->
+      <div class="flex-1 overflow-y-auto">
+        {sortedVersions.map((v) => (
+          <div
+            class:list={[
+              'grid grid-cols-4 px-5 py-2.5 border-b font-mono text-[13px] transition-colors',
+              v.version === latestVersion && 'relative',
+            ]}
+            style={`border-color: var(--color-border);${v.version === latestVersion ? ' background-color: var(--color-background-secondary);' : ''}`}
+            onmouseenter="this.style.backgroundColor='var(--color-background-secondary)'"
+            onmouseleave={v.version === latestVersion
+              ? "this.style.backgroundColor='var(--color-background-secondary)'"
+              : "this.style.backgroundColor=''"
+            }
+          >
+            <span class="flex items-center gap-2" style="color: var(--color-text);">
+              {v.version}
+              {v.version === latestVersion && (
+                <span
+                  class="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 border"
+                  style="color: var(--color-text-secondary); border-color: var(--color-border);"
+                >
+                  latest
+                </span>
+              )}
+            </span>
+            <span class="text-right" style="color: var(--color-text-secondary);">
+              {formatEntries(v.entry_count)}
+            </span>
+            <span class="text-right" style="color: var(--color-text-secondary);">
+              {formatSize(v.size_bytes)}
+            </span>
+            <span class="text-right" style="color: var(--color-text-tertiary);">
+              {formatDate(v.published_at)}
+            </span>
+          </div>
+        ))}
+
+        {sortedVersions.length === 0 && (
+          <div
+            class="px-5 py-8 text-center font-mono text-sm"
+            style="color: var(--color-text-tertiary);"
+          >
+            No versions published yet.
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    document.getElementById('copy-install')?.addEventListener('click', function() {
+      var cmd = 'mx pull ' + document.querySelector('#copy-install')?.closest('.border')?.querySelector('code')?.textContent?.trim();
+      var copyIcon = document.getElementById('copy-icon');
+      var checkIcon = document.getElementById('check-icon');
+      navigator.clipboard.writeText(cmd).then(function() {
+        if (copyIcon) copyIcon.style.display = 'none';
+        if (checkIcon) checkIcon.style.display = 'block';
+        setTimeout(function() {
+          if (copyIcon) copyIcon.style.display = 'block';
+          if (checkIcon) checkIcon.style.display = 'none';
+        }, 1500);
+      });
+    });
+  </script>
+</Layout>

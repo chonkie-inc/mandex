@@ -1,19 +1,20 @@
 ---
 const features = [
   {
-    stat: '~2MB',
-    label: 'Avg. package size',
-    desc: 'Compact SQLite indexes. No bloat, no network required.',
+    stat: '24MB',
+    label: 'Single binary',
+    desc: 'One self-contained binary. CLI, search engine, and reranker — all included.',
   },
   {
-    stat: '<5ms',
-    label: 'Search latency',
-    desc: 'FTS5-powered full-text search across thousands of entries.',
+    stat: '5×',
+    label: 'Faster than cloud MCP',
+    desc: 'Local FTS5 search in <50ms vs 300–500ms round-trips to remote servers.',
   },
   {
-    stat: '100+',
-    label: 'Packages',
-    desc: 'Growing open registry of docs for popular frameworks and libraries.',
+    stat: '—',
+    label: 'Packages & versions',
+    desc: 'Growing open registry of versioned docs for popular frameworks.',
+    dynamic: true,
   },
   {
     stat: '10+',
@@ -21,9 +22,9 @@ const features = [
     desc: 'Claude, Cursor, Copilot, Windsurf, Cline, Codex, and more.',
   },
   {
-    stat: '1',
-    label: 'Command to install',
-    desc: 'curl, pull, search. That\'s it. No config, no API keys.',
+    stat: '~2MB',
+    label: 'Avg. package size',
+    desc: 'Compressed SQLite indexes. One HTTP GET to a CDN edge — no auth, no API.',
   },
   {
     stat: '∞',
@@ -61,6 +62,7 @@ const features = [
         <span
           class="text-3xl font-bold tracking-tight leading-none mb-1.5"
           style="color: var(--color-text);"
+          id={f.dynamic ? 'pkg-count-stat' : undefined}
         >
           {f.stat}
         </span>

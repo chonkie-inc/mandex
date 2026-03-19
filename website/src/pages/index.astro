@@ -7,6 +7,9 @@ import TerminalFeed from '../components/TerminalFeed.astro';
 
 <Layout title="mandex — documentation packages for AI agents">
   <div class="flex-1 flex flex-col min-h-0">
+    <!-- Marquee strip -->
+    <Marquee />
+
     <!-- Two-column split -->
     <div class="flex-1 flex min-h-0">
 
@@ -124,8 +127,6 @@ import TerminalFeed from '../components/TerminalFeed.astro';
 
     </div>
 
-    <!-- Marquee strip at bottom -->
-    <Marquee />
   </div>
 
   <script is:inline>
@@ -136,10 +137,20 @@ import TerminalFeed from '../components/TerminalFeed.astro';
         var list = document.getElementById('registry-list');
         if (!list) return;
         list.innerHTML = '';
+        function formatSize(bytes) {
+          if (!bytes) return '—';
+          if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+          return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
         packages.forEach(function(pkg) {
-          var row = document.createElement('div');
-          row.className = 'flex items-center justify-between px-5 py-2.5 border-b';
+          var row = document.createElement('a');
+          row.href = '/packages/' + pkg.name;
+          row.className = 'flex items-center justify-between px-5 py-2.5 border-b transition-colors';
           row.style.borderColor = 'var(--color-border)';
+          row.style.textDecoration = 'none';
+          row.onmouseenter = function() { row.style.backgroundColor = 'var(--color-background-secondary)'; };
+          row.onmouseleave = function() { row.style.backgroundColor = ''; };
 
           var left = document.createElement('div');
           left.className = 'flex flex-col';
@@ -165,17 +176,26 @@ import TerminalFeed from '../components/TerminalFeed.astro';
           ver.style.color = 'var(--color-text-secondary)';
           ver.style.fontSize = '12px';
           ver.textContent = pkg.latest_version;
-          var entries = document.createElement('span');
-          entries.style.color = 'var(--color-text-tertiary)';
-          entries.style.fontSize = '11px';
-          entries.textContent = (pkg.entry_count || 0).toLocaleString() + ' entries';
+          var size = document.createElement('span');
+          size.style.color = 'var(--color-text-tertiary)';
+          size.style.fontSize = '11px';
+          size.textContent = formatSize(pkg.size_bytes);
           right.appendChild(ver);
-          right.appendChild(entries);
+          right.appendChild(size);
 
           row.appendChild(left);
           row.appendChild(right);
           list.appendChild(row);
         });
+
+        // Update package count stat
+        var totalVersions = packages.reduce(function(sum, pkg) {
+          return sum + (pkg.version_count || 0);
+        }, 0);
+        var stat = document.getElementById('pkg-count-stat');
+        if (stat) {
+          stat.textContent = totalVersions.toLocaleString();
+        }
       })
       .catch(function() {});
 
