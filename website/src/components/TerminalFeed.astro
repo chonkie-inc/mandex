@@ -1,0 +1,257 @@
+---
+const feedItems = [
+  {
+    command: 'mx pull fastapi@0.115.0',
+    output: [
+      { text: '✓ Downloaded fastapi@0.115.0 (1,965 entries, 2.1 MB)', type: 'success' },
+    ],
+  },
+  {
+    command: 'mx search fastapi "rate limiting"',
+    preview: '<div style="margin-bottom:12px"><span style="font-size:11px;opacity:0.4;font-family:monospace">fastapi@0.115.0</span></div><h3 style="font-size:15px;font-weight:600;margin-bottom:8px">Rate Limiting Middleware</h3><p style="margin-bottom:12px;opacity:0.6">You can add rate limiting to your FastAPI application using the <code style="background:var(--color-border);padding:1px 4px;border-radius:2px;font-size:12px">SlowAPI</code> middleware.</p><div style="background:var(--color-background-secondary);border:1px solid var(--color-border);padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.6;margin-bottom:12px"><div style="opacity:0.5">from</div><div>&nbsp;&nbsp;slowapi <span style="opacity:0.5">import</span> Limiter</div><div>&nbsp;&nbsp;slowapi.util <span style="opacity:0.5">import</span> get_remote_address</div><div style="margin-top:6px">limiter = Limiter(</div><div>&nbsp;&nbsp;key_func=get_remote_address</div><div>)</div></div><p style="opacity:0.4;font-size:12px">Advanced User Guide › Rate Limiting</p>',
+    output: [
+      { text: '────────────────────────────────────────────────', type: 'divider' },
+      { text: 'fastapi@0.115.0 — Advanced User Guide > Rate Limiting', type: 'heading' },
+      { text: '', type: 'blank' },
+      { text: '### Rate Limiting Middleware', type: 'markdown' },
+      { text: '', type: 'blank' },
+      { text: 'You can add rate limiting to your FastAPI app', type: 'prose' },
+      { text: 'using the `SlowAPI` middleware:', type: 'prose' },
+      { text: '', type: 'blank' },
+      { text: '  from slowapi import Limiter', type: 'code' },
+      { text: '  limiter = Limiter(key_func=get_remote_address)', type: 'code' },
+      { text: '', type: 'blank' },
+      { text: '────────────────────────────────────────────────', type: 'divider' },
+    ],
+  },
+  {
+    command: 'mx sync',
+    output: [
+      { text: '✓ tailwindcss 4.2.1 → 4.2.2 (updated)', type: 'success' },
+      { text: '✓ react 19.2.3 → 19.2.4 (updated)', type: 'success' },
+      { text: '· drizzle-orm 0.45.1 (up to date)', type: 'info' },
+    ],
+  },
+  {
+    command: 'mx search transformers "attention mask"',
+    preview: '<div style="margin-bottom:12px"><span style="font-size:11px;opacity:0.4;font-family:monospace">transformers@4.51.0</span></div><h3 style="font-size:15px;font-weight:600;margin-bottom:8px">attention_mask</h3><p style="margin-bottom:12px;opacity:0.6">Mask to avoid performing attention on padding token indices. Values in <code style="background:var(--color-border);padding:1px 4px;border-radius:2px;font-size:12px">[0, 1]</code>:</p><ul style="opacity:0.6;margin-bottom:12px;padding-left:16px"><li>1 for tokens that are <strong>not masked</strong></li><li>0 for tokens that are <strong>masked</strong></li></ul><div style="background:var(--color-background-secondary);border:1px solid var(--color-border);padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.6;margin-bottom:12px"><div>model(</div><div>&nbsp;&nbsp;input_ids,</div><div>&nbsp;&nbsp;attention_mask=mask</div><div>)</div></div><p style="opacity:0.4;font-size:12px">Model Doc › BERT</p>',
+    output: [
+      { text: '────────────────────────────────────────────────', type: 'divider' },
+      { text: 'transformers@4.51.0 — Model Doc > BERT', type: 'heading' },
+      { text: '', type: 'blank' },
+      { text: '### attention_mask', type: 'markdown' },
+      { text: '', type: 'blank' },
+      { text: 'Mask to avoid performing attention on padding', type: 'prose' },
+      { text: 'token indices. Values in `[0, 1]`:', type: 'prose' },
+      { text: '- 1 for tokens that are not masked', type: 'prose' },
+      { text: '- 0 for tokens that are masked', type: 'prose' },
+      { text: '', type: 'blank' },
+      { text: '  model(input_ids, attention_mask=mask)', type: 'code' },
+      { text: '', type: 'blank' },
+      { text: '────────────────────────────────────────────────', type: 'divider' },
+    ],
+  },
+  {
+    command: 'mx pull react@19.2.4',
+    output: [
+      { text: '✓ Downloaded react@19.2.4 (1,949 entries, 1.8 MB)', type: 'success' },
+    ],
+  },
+  {
+    command: 'mx search nextjs "server actions"',
+    preview: '<div style="margin-bottom:12px"><span style="font-size:11px;opacity:0.4;font-family:monospace">nextjs@15.3.0</span></div><h3 style="font-size:15px;font-weight:600;margin-bottom:8px">Server Actions</h3><p style="margin-bottom:12px;opacity:0.6">Server Actions are asynchronous functions that are executed on the server. They can be called in Server and Client Components.</p><div style="background:var(--color-background-secondary);border:1px solid var(--color-border);padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.6;margin-bottom:12px"><div style="opacity:0.5">"use server"</div><div style="margin-top:4px">async function create() {</div><div>&nbsp;&nbsp;<span style="opacity:0.5">// mutate data</span></div><div>}</div></div><p style="opacity:0.4;font-size:12px">API Reference › use server</p>',
+    output: [
+      { text: '────────────────────────────────────────────────', type: 'divider' },
+      { text: 'nextjs@15.3.0 — API Reference > use server', type: 'heading' },
+      { text: '', type: 'blank' },
+      { text: '### Server Actions', type: 'markdown' },
+      { text: '', type: 'blank' },
+      { text: 'Server Actions are asynchronous functions that', type: 'prose' },
+      { text: 'are executed on the server.', type: 'prose' },
+      { text: '', type: 'blank' },
+      { text: '  "use server"', type: 'code' },
+      { text: '  async function create() { ... }', type: 'code' },
+      { text: '', type: 'blank' },
+      { text: '────────────────────────────────────────────────', type: 'divider' },
+    ],
+  },
+];
+---
+
+<div class="relative overflow-hidden h-full">
+  <!-- Gradient fades -->
+  <div class="absolute inset-x-0 top-0 h-12 z-10 pointer-events-none" style="background: linear-gradient(to bottom, var(--color-background), transparent);"></div>
+  <div class="absolute inset-x-0 bottom-0 h-12 z-10 pointer-events-none" style="background: linear-gradient(to top, var(--color-background), transparent);"></div>
+
+  <!-- Feed -->
+  <div
+    id="terminal-feed"
+    class="h-full font-mono text-[15px] leading-[1.8] px-4 pt-6 overflow-hidden"
+  >
+    <div id="feed-content"></div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ feedItems }}>
+  (function() {
+    var container = document.getElementById('feed-content');
+    if (!container) return;
+
+    var CHAR_DELAY = 18;
+    var LINE_DELAY = 35;
+    var COMMAND_PAUSE = 600;
+    var currentItem = 0;
+
+    function createLine(html, style) {
+      var div = document.createElement('div');
+      div.innerHTML = html;
+      if (style) {
+        for (var k in style) div.style[k] = style[k];
+      }
+      return div;
+    }
+
+    function typeCommand(text, el) {
+      return new Promise(function(resolve) {
+        var i = 0;
+        var cursor = document.createElement('span');
+        cursor.className = 'cursor-blink';
+        cursor.textContent = '▌';
+        cursor.style.opacity = '0.35';
+        el.appendChild(cursor);
+
+        function next() {
+          if (i < text.length) {
+            cursor.before(document.createTextNode(text[i]));
+            i++;
+            setTimeout(next, CHAR_DELAY + Math.random() * 10);
+          } else {
+            cursor.remove();
+            resolve();
+          }
+        }
+        next();
+      });
+    }
+
+    function scrollToBottom() {
+      var feed = document.getElementById('terminal-feed');
+      if (feed) feed.scrollTop = feed.scrollHeight;
+    }
+
+    function styleLine(text, type) {
+      var s = {};
+      var html = text;
+
+      if (type === 'divider') {
+        s.opacity = '0.15';
+        s.color = 'var(--color-text)';
+      } else if (type === 'heading') {
+        s.color = 'var(--color-text)';
+        s.opacity = '0.7';
+        s.fontWeight = '600';
+      } else if (type === 'markdown') {
+        s.color = 'var(--color-text)';
+        s.opacity = '0.6';
+        s.fontWeight = '600';
+      } else if (type === 'code') {
+        s.color = 'var(--color-text)';
+        s.opacity = '0.55';
+        s.paddingLeft = '8px';
+      } else if (type === 'prose') {
+        s.color = 'var(--color-text)';
+        s.opacity = '0.45';
+      } else if (type === 'success') {
+        html = text.replace(/✓/g, '<span style="opacity:0.8">✓</span>')
+                   .replace(/\(([^)]+)\)/g, '<span style="opacity:0.5">($1)</span>');
+        s.color = 'var(--color-text)';
+        s.opacity = '0.65';
+      } else if (type === 'info') {
+        s.color = 'var(--color-text)';
+        s.opacity = '0.35';
+      } else if (type === 'blank') {
+        html = '&nbsp;';
+        s.lineHeight = '0.6';
+      }
+
+      return { html: html, style: s };
+    }
+
+    async function renderItem(item) {
+      // Command line
+      var cmdLine = createLine('');
+      var prompt = document.createElement('span');
+      prompt.style.color = 'var(--color-text)';
+      prompt.style.opacity = '0.35';
+      prompt.textContent = '$ ';
+      cmdLine.appendChild(prompt);
+
+      var cmdSpan = document.createElement('span');
+      cmdSpan.style.color = 'var(--color-text)';
+      cmdSpan.style.fontWeight = '500';
+      cmdLine.appendChild(cmdSpan);
+
+      container.appendChild(cmdLine);
+      scrollToBottom();
+
+      await typeCommand(item.command, cmdSpan);
+
+      // Update preview panel if this is a search command
+      if (item.preview) {
+        window.dispatchEvent(new CustomEvent('doc-preview', { detail: item.preview }));
+      } else {
+        window.dispatchEvent(new CustomEvent('doc-preview', { detail: '' }));
+      }
+
+      await new Promise(function(r) { setTimeout(r, LINE_DELAY * 3); });
+
+      // Output lines
+      for (var i = 0; i < item.output.length; i++) {
+        var line = item.output[i];
+        var result = styleLine(line.text, line.type);
+        var outLine = createLine(result.html, result.style);
+
+        if (line.type !== 'blank' && line.type !== 'divider') {
+          outLine.style.transform = 'translateY(3px)';
+          outLine.style.transition = 'all 0.12s ease-out';
+          var origOpacity = outLine.style.opacity;
+          outLine.style.opacity = '0';
+          container.appendChild(outLine);
+          scrollToBottom();
+
+          requestAnimationFrame(function(el, op) {
+            return function() {
+              el.style.opacity = op;
+              el.style.transform = 'translateY(0)';
+            };
+          }(outLine, origOpacity));
+        } else {
+          container.appendChild(outLine);
+          scrollToBottom();
+        }
+
+        await new Promise(function(r) { setTimeout(r, LINE_DELAY); });
+      }
+
+      // Blank line between commands
+      container.appendChild(createLine('&nbsp;'));
+      scrollToBottom();
+    }
+
+    async function runFeed() {
+      while (true) {
+        await renderItem(feedItems[currentItem]);
+        currentItem = (currentItem + 1) % feedItems.length;
+        await new Promise(function(r) { setTimeout(r, COMMAND_PAUSE); });
+
+        while (container.children.length > 80) {
+          container.removeChild(container.firstChild);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      runFeed();
+    });
+  })();
+</script>

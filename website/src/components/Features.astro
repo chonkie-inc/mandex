@@ -1,0 +1,79 @@
+---
+const features = [
+  {
+    stat: '~2MB',
+    label: 'Avg. package size',
+    desc: 'Compact SQLite indexes. No bloat, no network required.',
+  },
+  {
+    stat: '<5ms',
+    label: 'Search latency',
+    desc: 'FTS5-powered full-text search across thousands of entries.',
+  },
+  {
+    stat: '100+',
+    label: 'Packages',
+    desc: 'Growing open registry of docs for popular frameworks and libraries.',
+  },
+  {
+    stat: '10+',
+    label: 'Agents supported',
+    desc: 'Claude, Cursor, Copilot, Windsurf, Cline, Codex, and more.',
+  },
+  {
+    stat: '1',
+    label: 'Command to install',
+    desc: 'curl, pull, search. That\'s it. No config, no API keys.',
+  },
+  {
+    stat: '∞',
+    label: 'Offline queries',
+    desc: 'Everything is local. Works on planes, in CI, behind firewalls.',
+  },
+];
+---
+
+<div class="h-full flex flex-col">
+  <!-- Header -->
+  <div
+    class="px-6 py-3.5 border-b flex items-center gap-2 shrink-0"
+    style="border-color: var(--color-border);"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary);">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+    </svg>
+    <span class="text-xs font-mono font-medium uppercase tracking-widest" style="color: var(--color-text-tertiary);">
+      By the numbers
+    </span>
+  </div>
+
+  <!-- Bento grid — 3 columns -->
+  <div class="grid grid-cols-3">
+    {features.map((f, i) => (
+      <div
+        class:list={[
+          'flex flex-col px-5 py-5',
+          (i % 3 !== 2) ? 'border-r' : '',
+          i < features.length - 3 ? 'border-b' : '',
+        ]}
+        style="border-color: var(--color-border);"
+      >
+        <span
+          class="text-3xl font-bold tracking-tight leading-none mb-1.5"
+          style="color: var(--color-text);"
+        >
+          {f.stat}
+        </span>
+        <span
+          class="text-[11px] font-mono font-medium uppercase tracking-wide mb-2"
+          style="color: var(--color-text-tertiary);"
+        >
+          {f.label}
+        </span>
+        <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+          {f.desc}
+        </p>
+      </div>
+    ))}
+  </div>
+</div>

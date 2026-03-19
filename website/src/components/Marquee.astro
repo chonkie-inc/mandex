@@ -1,0 +1,54 @@
+---
+const agents = [
+  { name: 'AMP', icon: '/agents/amp.svg', url: 'https://ampcode.com/' },
+  { name: 'Antigravity', icon: '/agents/antigravity.svg', url: 'https://antigravity.google/' },
+  { name: 'Claude Code', icon: '/agents/clawdbot.svg', url: 'https://claude.ai/download' },
+  { name: 'Claude', icon: '/agents/claude.svg', url: 'https://claude.ai/' },
+  { name: 'OpenClaw', icon: '/agents/openclaw.svg', url: 'https://openclaw.ai/' },
+  { name: 'Cline', icon: '/agents/cline.svg', url: 'https://cline.bot/' },
+  { name: 'Codex', icon: '/agents/codex.svg', url: 'https://openai.com/index/introducing-codex/' },
+  { name: 'Copilot', icon: '/agents/copilot.svg', url: 'https://github.com/features/copilot' },
+  { name: 'Cursor', icon: '/agents/cursor.svg', url: 'https://cursor.com/' },
+  { name: 'Gemini', icon: '/agents/gemini.svg', url: 'https://github.com/google-gemini/gemini-cli' },
+  { name: 'Windsurf', icon: '/agents/windsurf.svg', url: 'https://windsurf.com/' },
+];
+---
+
+<div
+  class="shrink-0 border-t overflow-hidden relative py-1"
+  style="border-color: var(--color-border);"
+>
+  <!-- Left fade -->
+  <div class="pointer-events-none absolute top-0 bottom-0 left-0 z-10 w-24 sm:w-32 lg:w-48" style="background: linear-gradient(to right, var(--color-background), transparent);"></div>
+  <!-- Right fade -->
+  <div class="pointer-events-none absolute top-0 bottom-0 right-0 z-10 w-24 sm:w-32 lg:w-48" style="background: linear-gradient(to left, var(--color-background), transparent);"></div>
+
+  <div class="marquee-track flex min-w-max">
+    {/* First copy */}
+    <div class="flex shrink-0 gap-6 sm:gap-10 pr-6 sm:pr-10">
+      {agents.map((agent) => (
+        <a href={agent.url} target="_blank" rel="noopener noreferrer" class="flex-shrink-0 opacity-50 grayscale invert transition-all duration-300 hover:opacity-100 hover:grayscale-0 dark:invert-0">
+          <img
+            src={agent.icon}
+            alt={agent.name}
+            class="h-[72px] lg:h-[88px] w-auto object-contain"
+            loading="eager"
+          />
+        </a>
+      ))}
+    </div>
+    {/* Second copy for seamless loop */}
+    <div class="flex shrink-0 gap-6 sm:gap-10 pr-6 sm:pr-10" aria-hidden="true">
+      {agents.map((agent) => (
+        <a href={agent.url} target="_blank" rel="noopener noreferrer" class="flex-shrink-0 opacity-50 grayscale invert transition-all duration-300 hover:opacity-100 hover:grayscale-0 dark:invert-0">
+          <img
+            src={agent.icon}
+            alt={agent.name}
+            class="h-[72px] lg:h-[88px] w-auto object-contain"
+            loading="eager"
+          />
+        </a>
+      ))}
+    </div>
+  </div>
+</div>

@@ -1,171 +1,132 @@
 @import "tailwindcss";
 
-/* Light theme (default) */
+/* ── Light theme (default) ── */
 :root, [data-theme="light"] {
-  --color-background: #fff;
-  --color-background-secondary: #f4f4f5;
-  --color-border: #e4e4e7;
-  --color-text: #18181b;
-  --color-text-secondary: #52525b;
-  --color-text-tertiary: #a1a1aa;
-  --color-code-bg: #f4f4f5;
-  --color-code-text: #0f766e;
-  --color-pre-bg: #fafafa;
-  --color-pre-border: #e4e4e7;
-  --color-accent: #059669;
-  --color-accent-hover: #047857;
-  --color-alpha-background: rgba(255, 255, 255, 0.9);
+  --color-background: #ffffff;
+  --color-background-secondary: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-border: #e5e5e5;
+  --color-text: #000000;
+  --color-text-secondary: #525252;
+  --color-text-tertiary: #a3a3a3;
+  --color-accent: #000000;
+  --color-accent-hover: #262626;
+  --color-accent-dim: #f5f5f5;
+  --color-terminal-bg: #0a0a0a;
+  --color-terminal-text: #d4d4d4;
+  --color-alpha-background: rgba(255, 255, 255, 0.92);
 }
 
-/* Dark theme via system preference */
+/* ── Dark theme via system preference ── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --color-background: #0a0a0a;
-    --color-background-secondary: #18181b;
-    --color-border: #27272a;
-    --color-text: #fafafa;
-    --color-text-secondary: #a1a1aa;
-    --color-text-tertiary: #71717a;
-    --color-code-bg: #18181b;
-    --color-code-text: #a5f3fc;
-    --color-pre-bg: #18181b;
-    --color-pre-border: #27272a;
-    --color-accent: #34d399;
-    --color-accent-hover: #6ee7b7;
-    --color-alpha-background: rgba(10, 10, 10, 0.9);
+    --color-background-secondary: #141414;
+    --color-surface: #171717;
+    --color-border: #262626;
+    --color-text: #ffffff;
+    --color-text-secondary: #a3a3a3;
+    --color-text-tertiary: #737373;
+    --color-accent: #ffffff;
+    --color-accent-hover: #d4d4d4;
+    --color-accent-dim: #262626;
+    --color-terminal-bg: #0a0a0a;
+    --color-terminal-text: #d4d4d4;
+    --color-alpha-background: rgba(10, 10, 10, 0.92);
   }
 }
 
-/* Dark theme via manual toggle */
+/* ── Dark theme via manual toggle ── */
 [data-theme="dark"] {
   --color-background: #0a0a0a;
-  --color-background-secondary: #18181b;
-  --color-border: #27272a;
-  --color-text: #fafafa;
-  --color-text-secondary: #a1a1aa;
-  --color-text-tertiary: #71717a;
-  --color-code-bg: #18181b;
-  --color-code-text: #a5f3fc;
-  --color-pre-bg: #18181b;
-  --color-pre-border: #27272a;
-  --color-accent: #34d399;
-  --color-accent-hover: #6ee7b7;
-  --color-alpha-background: rgba(10, 10, 10, 0.9);
+  --color-background-secondary: #141414;
+  --color-surface: #171717;
+  --color-border: #262626;
+  --color-text: #ffffff;
+  --color-text-secondary: #a3a3a3;
+  --color-text-tertiary: #737373;
+  --color-accent: #ffffff;
+  --color-accent-hover: #d4d4d4;
+  --color-accent-dim: #262626;
+  --color-terminal-bg: #0a0a0a;
+  --color-terminal-text: #d4d4d4;
+  --color-alpha-background: rgba(10, 10, 10, 0.92);
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Geist', system-ui, -apple-system, sans-serif;
   background-color: var(--color-background);
   color: var(--color-text);
+  overflow: hidden;
 }
 
-code, pre {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+code, pre, .font-mono {
+  font-family: 'Geist Mono', ui-monospace, monospace;
 }
 
-/* Prose styles for the blog post */
-.prose-mandex {
-  color: var(--color-text-secondary);
-  line-height: 1.8;
-  font-size: 1rem;
+/* ── Marquee ── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }
 
-.prose-mandex h1 {
-  color: var(--color-text);
-  font-size: 2.25rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  margin-bottom: 1.5rem;
-  line-height: 1.2;
+.marquee-track {
+  animation: marquee 24s linear infinite;
 }
 
-.prose-mandex h2 {
-  color: var(--color-text);
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-top: 3rem;
-  margin-bottom: 1rem;
-  letter-spacing: -0.015em;
+.marquee-track:hover {
+  animation-play-state: paused;
 }
 
-.prose-mandex h3 {
-  color: var(--color-text);
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
+/* ── Terminal typing cursor ── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
-.prose-mandex p {
-  margin-bottom: 1.25rem;
+.cursor-blink {
+  animation: blink 1s step-end infinite;
 }
 
-.prose-mandex a {
-  color: var(--color-accent);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+/* ── Terminal scroll ── */
+@keyframes scroll-up {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
 }
 
-.prose-mandex a:hover {
-  color: var(--color-accent-hover);
+/* ── Logo switching ── */
+.dark-hidden { display: inline; }
+.light-hidden { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .dark-hidden { display: none !important; }
+  :root:not([data-theme="light"]) .light-hidden { display: inline !important; }
+}
+[data-theme="dark"] .dark-hidden { display: none !important; }
+[data-theme="dark"] .light-hidden { display: inline !important; }
+[data-theme="light"] .dark-hidden { display: inline !important; }
+[data-theme="light"] .light-hidden { display: none !important; }
+
+/* ── Dark mode invert override for marquee icons ── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .invert { filter: none; }
+}
+[data-theme="dark"] .invert { filter: none !important; }
+
+/* ── Hatch margin gutters (matches OpenLogs) ── */
+.hatch-bg {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 4px,
+    color-mix(in oklch, var(--color-text) 6%, transparent) 4px,
+    color-mix(in oklch, var(--color-text) 6%, transparent) 5px
+  );
 }
 
-.prose-mandex strong {
-  color: var(--color-text);
-  font-weight: 600;
-}
 
-.prose-mandex code {
-  color: var(--color-code-text);
-  background: var(--color-code-bg);
-  padding: 0.15em 0.4em;
-  border-radius: 0.25rem;
-  font-size: 0.875em;
-}
-
-.prose-mandex pre {
-  background: var(--color-pre-bg);
-  border: 1px solid var(--color-pre-border);
-  border-radius: 0.5rem;
-  padding: 1.25rem;
-  overflow-x: auto;
-  margin-bottom: 1.5rem;
-  margin-top: 1rem;
-}
-
-.prose-mandex pre code {
-  background: none;
-  padding: 0;
-  color: var(--color-text-secondary);
-  font-size: 0.85rem;
-  line-height: 1.7;
-}
-
-.prose-mandex ul {
-  list-style-type: disc;
-  padding-left: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.prose-mandex ol {
-  list-style-type: decimal;
-  padding-left: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.prose-mandex li {
-  margin-bottom: 0.5rem;
-}
-
-.prose-mandex blockquote {
-  border-left: 3px solid var(--color-border);
-  padding-left: 1rem;
-  color: var(--color-text-tertiary);
-  margin-bottom: 1.25rem;
-  font-style: italic;
-}
-
-.prose-mandex hr {
-  border-color: var(--color-border);
-  margin: 2rem 0;
+/* ── Selection ── */
+::selection {
+  background: var(--color-text);
+  color: var(--color-background);
 }

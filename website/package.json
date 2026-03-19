@@ -1,5 +1,5 @@
 {
-  "name": "website",
+  "name": "mandex-website",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -15,7 +15,6 @@
     "@astrojs/mdx": "^5.0.0",
     "@tailwindcss/vite": "^4.2.1",
     "astro": "^6.0.4",
-    "marked": "^17.0.4",
     "tailwindcss": "^4.2.1"
   }
 }

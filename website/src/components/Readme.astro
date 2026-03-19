@@ -1,0 +1,116 @@
+---
+const steps = [
+  {
+    num: '01',
+    label: 'Install the CLI',
+    command: 'curl -fsSL https://mandex.dev/install.sh | sh',
+  },
+  {
+    num: '02',
+    label: 'Pull a package',
+    command: 'mx pull fastapi',
+  },
+  {
+    num: '03',
+    label: 'Search instantly',
+    command: 'mx search fastapi "rate limiting"',
+  },
+];
+---
+
+<div
+  class="overflow-hidden overflow-y-auto h-full flex flex-col"
+>
+  <!-- Header -->
+  <div
+    class="px-6 py-3.5 border-b flex items-center gap-2"
+    style="border-color: var(--color-border);"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary);">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>
+    </svg>
+    <span class="text-xs font-mono font-medium uppercase tracking-widest" style="color: var(--color-text-tertiary);">
+      README
+    </span>
+  </div>
+
+  <!-- Steps -->
+  <div class="px-6 py-5 flex flex-col gap-5 flex-1">
+    {steps.map((step) => (
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2.5">
+          <span
+            class="text-[11px] font-mono font-medium px-1.5 py-0.5 rounded border"
+            style="border-color: var(--color-border); color: var(--color-text);"
+          >
+            {step.num}
+          </span>
+          <span class="text-sm font-medium" style="color: var(--color-text-secondary);">
+            {step.label}
+          </span>
+        </div>
+        <div
+          class="group relative flex items-center rounded-lg border px-3.5 py-2.5"
+          style="border-color: var(--color-border);"
+        >
+          <code class="text-[13px] font-mono flex-1 truncate" style="color: var(--color-text);">
+            {step.command}
+          </code>
+          <button
+            class="copy-btn ml-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            style="color: var(--color-text-tertiary);"
+            data-command={step.command}
+            title="Copy"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    ))}
+
+    <!-- Flags section -->
+    <details class="mt-auto">
+      <summary
+        class="text-xs font-mono cursor-pointer select-none flex items-center gap-1.5 py-1"
+        style="color: var(--color-text-tertiary);"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="details-chevron transition-transform">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        FLAGS
+      </summary>
+      <div
+        class="mt-2 rounded-lg border px-3.5 py-2.5 text-[12px] font-mono leading-relaxed"
+        style="border-color: var(--color-border); color: var(--color-text-secondary);"
+      >
+        <div><span style="color: var(--color-accent);">--version</span> &lt;ver&gt;  Pin to a specific version</div>
+        <div><span style="color: var(--color-accent);">--rerank</span>          Re-rank search results by relevance</div>
+        <div><span style="color: var(--color-accent);">--limit</span> &lt;n&gt;     Max results to return (default: 10)</div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<style>
+  details[open] .details-chevron {
+    transform: rotate(90deg);
+  }
+</style>
+
+<script is:inline>
+  document.querySelectorAll('.copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var command = this.getAttribute('data-command');
+      navigator.clipboard.writeText(command).then(function() {
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        btn.style.color = 'var(--color-accent)';
+        setTimeout(function() {
+          btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+          btn.style.color = 'var(--color-text-tertiary)';
+        }, 1500);
+      });
+    });
+  });
+</script>
