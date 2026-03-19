@@ -28,7 +28,7 @@ const { title, description = "Documentation packages for AI agents. Local, versi
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Nav -->
       <nav
-        class="shrink-0 border-b px-5 py-2.5 flex items-center justify-between"
+        class="shrink-0 border-b px-5 py-2.5 flex items-center justify-between relative"
         style="border-color: var(--color-border); background-color: var(--color-alpha-background); backdrop-filter: blur(8px);"
       >
         <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -36,6 +36,12 @@ const { title, description = "Documentation packages for AI agents. Local, versi
           <img src="/logo-white.png" alt="mandex" class="h-6 light-hidden" />
           <span class="text-xl font-light tracking-wide" style="color: var(--color-text);">mandex</span>
         </a>
+
+        <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-4">
+          <a href="/about" class="text-[13px] font-mono font-medium uppercase tracking-widest transition-opacity hover:opacity-70" style="color: var(--color-text-tertiary); text-decoration: none;">About</a>
+          <span class="text-[11px]" style="color: var(--color-text-tertiary);">&middot;</span>
+          <a href="/registry" class="text-[13px] font-mono font-medium uppercase tracking-widest transition-opacity hover:opacity-70" style="color: var(--color-text-tertiary); text-decoration: none;">Registry</a>
+        </div>
 
         <div class="flex items-center gap-2">
           <!-- Theme toggle — plain, no border/bg -->

@@ -1,52 +1,37 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Marquee from '../components/Marquee.astro';
-import Features from '../components/Features.astro';
-import TerminalFeed from '../components/TerminalFeed.astro';
 ---
 
 <Layout title="mandex — documentation packages for AI agents">
   <div class="flex-1 flex flex-col min-h-0">
-    <!-- Marquee strip -->
-    <Marquee />
-
     <!-- Two-column split -->
     <div class="flex-1 flex min-h-0">
 
-      <!-- Left pane 40% (hero + terminal) -->
-      <div class="w-full lg:w-[40%] flex flex-col min-h-0">
-        <!-- Hero — takes top half -->
-        <div class="flex-1 flex flex-col pl-4 pr-4">
-          <!-- Title — centered in its space -->
-          <div class="flex-[3] flex flex-col justify-center">
-            <h1
-              class="text-5xl md:text-6xl font-bold tracking-tight leading-[1.05]"
-              style="color: var(--color-text);"
-            >
-              Fastest way to give your agents docs.
-            </h1>
-          </div>
-          <div class="h-px -mx-4" style="background-color: var(--color-border);"></div>
-          <!-- Subtitle — centered in its space -->
-          <div class="flex-[2] flex flex-col justify-center">
-            <p
-              class="text-lg md:text-xl leading-relaxed"
-              style="color: var(--color-text-secondary);"
-            >
-              mandex pulls documentation as local docs indexes —
-              one download gives you instant search, exact version
-              pinning, and unlimited offline queries. No rate
-              limits, no latency, no API keys.
-            </p>
-          </div>
-          <div class="h-px -mx-4" style="background-color: var(--color-border);"></div>
-          <!-- Buttons — centered in its space, smallest -->
-          <div class="flex-[1] flex flex-col justify-center">
-            <div class="flex flex-wrap items-center gap-3">
+      <!-- Centered hero box -->
+      <div class="w-full flex-1 flex items-center justify-center grid-bg">
+        <div class="border flex flex-col gap-5 px-10 py-8" style="border-color: var(--color-border); max-width: 600px; width: 100%; position: relative; z-index: 1; background-color: var(--color-background);">
+          <h1
+            class="text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]"
+            style="color: var(--color-text);"
+          >
+            Fastest way for agents to get docs.
+          </h1>
+          <div class="h-px" style="background-color: var(--color-border);"></div>
+          <p
+            class="text-base md:text-lg leading-relaxed"
+            style="color: var(--color-text-secondary);"
+          >
+            mandex pulls documentation as local docs indexes —
+            one download gives you instant search, exact version
+            pinning, and unlimited offline queries. No rate
+            limits, no latency, no API keys.
+          </p>
+          <div class="h-px" style="background-color: var(--color-border);"></div>
+          <div class="flex flex-wrap items-center gap-3">
             <button
               id="hero-copy"
               class="group flex items-center gap-2.5 px-4 py-2 border text-sm font-medium transition-colors cursor-pointer"
-              style="background-color: var(--color-text); color: var(--color-background); border-color: var(--color-text);"
+              style="background-color: #059669; color: white; border-color: #059669;"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
@@ -65,139 +50,30 @@ import TerminalFeed from '../components/TerminalFeed.astro';
               </svg>
               View on GitHub
             </a>
-            </div>
           </div>
-        </div>
-
-        <!-- Double line between hero and terminal -->
-        <div class="shrink-0" style="padding: 2px 0;">
-          <div class="w-full h-px" style="background-color: var(--color-border);"></div>
-          <div class="w-full h-px mt-[5px]" style="background-color: var(--color-border);"></div>
-        </div>
-
-        <!-- Terminal header -->
-        <div class="px-4 py-2.5 border-b shrink-0 flex items-center gap-2" style="border-color: var(--color-border);">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary);">
-            <polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>
-          </svg>
-          <span class="text-[11px] font-mono font-medium uppercase tracking-widest" style="color: var(--color-text-tertiary);">Terminal</span>
-        </div>
-
-        <!-- Terminal feed — fills bottom half -->
-        <div class="flex-1 min-h-0">
-          <TerminalFeed />
         </div>
       </div>
 
-      <!-- Double line vertical separator -->
-      <div class="hidden lg:flex shrink-0 flex-col" style="width: 7px;">
-        <div class="flex-1" style="border-left: 1px solid var(--color-border); border-right: 1px solid var(--color-border);"></div>
-      </div>
-
-      <!-- Right pane 60% (registry + features) -->
-      <div class="w-full lg:flex-1 flex flex-col min-h-0">
-        <!-- Registry list — takes most of the space -->
-        <div class="flex-1 min-h-0 flex flex-col overflow-hidden">
-          <!-- Header -->
-          <div class="px-5 py-2.5 border-b shrink-0 flex items-center gap-2" style="border-color: var(--color-border);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-tertiary);">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/>
-            </svg>
-            <span class="text-[11px] font-mono font-medium uppercase tracking-widest" style="color: var(--color-text-tertiary);">Registry</span>
-          </div>
-          <!-- Package rows (populated by JS) -->
-          <div id="registry-list" class="flex-1 overflow-y-auto font-mono text-[13px]">
-            <div class="flex items-center justify-center h-full" style="color: var(--color-text-tertiary);">
-              <span class="text-xs font-mono">Loading...</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Double line between registry and features -->
-        <div class="shrink-0" style="padding: 2px 0;">
-          <div class="w-full h-px" style="background-color: var(--color-border);"></div>
-          <div class="w-full h-px mt-[5px]" style="background-color: var(--color-border);"></div>
-        </div>
-
-        <!-- Features — 3 columns, compact -->
-        <div class="shrink-0">
-          <Features />
-        </div>
-      </div>
 
     </div>
 
   </div>
 
   <script is:inline>
-    // Fetch registry packages
-    fetch('https://api.mandex.dev/packages')
-      .then(function(r) { return r.json(); })
-      .then(function(packages) {
-        var list = document.getElementById('registry-list');
-        if (!list) return;
-        list.innerHTML = '';
-        function formatSize(bytes) {
-          if (!bytes) return '—';
-          if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
-          return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }
-
-        packages.forEach(function(pkg) {
-          var row = document.createElement('a');
-          row.href = '/packages/' + pkg.name;
-          row.className = 'flex items-center justify-between px-5 py-2.5 border-b transition-colors';
-          row.style.borderColor = 'var(--color-border)';
-          row.style.textDecoration = 'none';
-          row.onmouseenter = function() { row.style.backgroundColor = 'var(--color-background-secondary)'; };
-          row.onmouseleave = function() { row.style.backgroundColor = ''; };
-
-          var left = document.createElement('div');
-          left.className = 'flex flex-col';
-          var name = document.createElement('span');
-          name.style.color = 'var(--color-text)';
-          name.style.fontWeight = '500';
-          name.textContent = pkg.name;
-          var desc = document.createElement('span');
-          desc.style.color = 'var(--color-text-tertiary)';
-          desc.style.fontSize = '11px';
-          desc.style.marginTop = '1px';
-          desc.textContent = pkg.description;
-          desc.style.overflow = 'hidden';
-          desc.style.textOverflow = 'ellipsis';
-          desc.style.whiteSpace = 'nowrap';
-          desc.style.maxWidth = '350px';
-          left.appendChild(name);
-          left.appendChild(desc);
-
-          var right = document.createElement('div');
-          right.className = 'flex flex-col items-end shrink-0';
-          var ver = document.createElement('span');
-          ver.style.color = 'var(--color-text-secondary)';
-          ver.style.fontSize = '12px';
-          ver.textContent = pkg.latest_version;
-          var size = document.createElement('span');
-          size.style.color = 'var(--color-text-tertiary)';
-          size.style.fontSize = '11px';
-          size.textContent = formatSize(pkg.size_bytes);
-          right.appendChild(ver);
-          right.appendChild(size);
-
-          row.appendChild(left);
-          row.appendChild(right);
-          list.appendChild(row);
-        });
-
-        // Update package count stat
-        var totalVersions = packages.reduce(function(sum, pkg) {
-          return sum + (pkg.version_count || 0);
-        }, 0);
-        var stat = document.getElementById('pkg-count-stat');
-        if (stat) {
-          stat.textContent = totalVersions.toLocaleString();
-        }
-      })
-      .catch(function() {});
+    // Align the cover rectangle to grid rows
+    (function() {
+      function alignHole() {
+        var el = document.querySelector('.grid-bg');
+        if (!el) return;
+        var cell = (window.innerWidth - 96) / 8;
+        var h = el.offsetHeight;
+        var totalRows = Math.floor(h / cell);
+        var startRow = Math.floor((totalRows - 3) / 2);
+        el.style.setProperty('--hole-top', ((startRow + 1) * cell + 1) + 'px');
+      }
+      alignHole();
+      window.addEventListener('resize', alignHole);
+    })();
 
     document.getElementById('hero-copy')?.addEventListener('click', function() {
       var cmd = 'curl -fsSL https://mandex.dev/install.sh | sh';
