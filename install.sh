@@ -7,8 +7,8 @@ set -e
 #   Non-interactive: curl -fsSL https://mandex.dev/install.sh | sh -s -- --yes
 #   Specific:        curl -fsSL https://mandex.dev/install.sh | sh -s -- --yes --claude-code --codex
 
-MANDEX_VERSION="0.1.0"
-BINARY_BASE_URL="https://github.com/bhavnicksm/mandex/releases/download/v${MANDEX_VERSION}"
+MANDEX_VERSION="0.1.1"
+BINARY_BASE_URL="https://github.com/chonkie-inc/mandex/releases/download/v${MANDEX_VERSION}"
 INSTALL_DIR="/usr/local/bin"
 
 # ─── colours ────────────────────────────────────────────────────────────────
@@ -69,7 +69,13 @@ detect_platform() {
 
   case "$OS" in
     linux)
-      TARGET="${ARCH}-unknown-linux-musl"
+      # Detect musl vs gnu libc
+      if command -v ldd >/dev/null 2>&1 && ldd /bin/sh 2>&1 | grep -qi musl; then
+        LIBC="musl"
+      else
+        LIBC="gnu"
+      fi
+      TARGET="${ARCH}-unknown-linux-${LIBC}"
       BINARY_NAME="mx"
       ;;
     darwin)
