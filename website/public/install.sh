@@ -9,7 +9,7 @@ set -e
 
 MANDEX_VERSION="0.1.1"
 BINARY_BASE_URL="https://github.com/chonkie-inc/mandex/releases/download/v${MANDEX_VERSION}"
-INSTALL_DIR="/usr/local/bin"
+INSTALL_DIR="$HOME/.local/bin"
 
 # ─── colours ────────────────────────────────────────────────────────────────
 if [ -t 1 ]; then
@@ -113,20 +113,79 @@ install_binary() {
   tar -xzf "$TMP_FILE" -C "$TMP_DIR"
   chmod +x "${TMP_DIR}/${BINARY_NAME}"
 
-  # Install to INSTALL_DIR, use sudo if needed
-  if [ -w "$INSTALL_DIR" ]; then
-    mv "${TMP_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/mx"
-  elif command -v sudo >/dev/null 2>&1; then
-    sudo mv "${TMP_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/mx"
-  else
-    # Fall back to ~/.local/bin
-    INSTALL_DIR="$HOME/.local/bin"
-    mkdir -p "$INSTALL_DIR"
-    mv "${TMP_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/mx"
-  fi
+  mkdir -p "$INSTALL_DIR"
+  mv "${TMP_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/mx"
 
   rm -rf "$TMP_DIR"
   success "Installed mx to ${INSTALL_DIR}/mx"
+}
+
+# ─── PATH setup ───────────────────────────────────────────────────────────
+ENV_FILE="$HOME/.local/bin/env.mandex"
+ENV_SCRIPT='# mandex PATH setup
+case ":${PATH}:" in
+    *:"$HOME/.local/bin":*)
+        ;;
+    *)
+        export PATH="$HOME/.local/bin:$PATH"
+        ;;
+esac'
+SOURCE_LINE='. "$HOME/.local/bin/env.mandex"'
+
+setup_path() {
+  # Skip if already in PATH
+  case ":$PATH:" in
+    *":$INSTALL_DIR:"*) return ;;
+  esac
+
+  # Write the env script
+  mkdir -p "$(dirname "$ENV_FILE")"
+  printf '%s\n' "$ENV_SCRIPT" > "$ENV_FILE"
+
+  # Append source line to shell rc files
+  MODIFIED_ANY=false
+
+  # .profile — always write (POSIX fallback)
+  _add_source_line "$HOME/.profile" true
+  # .bashrc, .bash_profile — only if they exist
+  _add_source_line "$HOME/.bashrc" false
+  _add_source_line "$HOME/.bash_profile" false
+  # .zshrc, .zshenv — detect zsh
+  if _has_shell zsh; then
+    ZSHENV="${ZDOTDIR:-$HOME}/.zshenv"
+    _add_source_line "$ZSHENV" true
+  fi
+
+  if $MODIFIED_ANY; then
+    success "Added ~/.local/bin to PATH in shell profile"
+    info "Restart your shell or run: source ${ENV_FILE}"
+  fi
+}
+
+_has_shell() {
+  case "$SHELL" in *"$1"*) return 0 ;; esac
+  command -v "$1" >/dev/null 2>&1
+}
+
+_add_source_line() {
+  TARGET_FILE="$1"
+  CREATE_IF_MISSING="$2"
+
+  if [ -f "$TARGET_FILE" ]; then
+    # Skip if source line already present
+    case "$(cat "$TARGET_FILE")" in
+      *"$SOURCE_LINE"*) return ;;
+    esac
+    # Ensure trailing newline before appending
+    if [ -s "$TARGET_FILE" ] && [ "$(tail -c 1 "$TARGET_FILE" | wc -l)" -eq 0 ]; then
+      printf '\n' >> "$TARGET_FILE"
+    fi
+    printf '%s\n' "$SOURCE_LINE" >> "$TARGET_FILE"
+    MODIFIED_ANY=true
+  elif $CREATE_IF_MISSING; then
+    printf '%s\n' "$SOURCE_LINE" >> "$TARGET_FILE"
+    MODIFIED_ANY=true
+  fi
 }
 
 # ─── integrations ───────────────────────────────────────────────────────────
@@ -359,6 +418,9 @@ main() {
     install_codex
     INSTALLED_ANY=true
   fi
+
+  # Set up PATH
+  setup_path
 
   # Done
   printf "\n${GREEN}${BOLD}Done.${RESET} "
