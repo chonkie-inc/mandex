@@ -227,15 +227,7 @@ pub fn run(yes: bool) -> Result<()> {
             .filter(|(_, t)| t.detected)
             .map(|(i, _)| i)
             .collect::<Vec<_>>()
-    } else if detected.is_empty() {
-        // Nothing detected — ask about all
-        let labels: Vec<String> = tools.iter().map(|t| t.name.to_string()).collect();
-        MultiSelect::with_theme(&theme)
-            .with_prompt("Select integrations to install")
-            .items(&labels)
-            .interact()?
     } else {
-        // Show multiselect with detected tools pre-checked
         let labels: Vec<String> = tools
             .iter()
             .map(|t| {
@@ -248,32 +240,36 @@ pub fn run(yes: bool) -> Result<()> {
             .collect();
         let defaults: Vec<bool> = tools.iter().map(|t| t.detected).collect();
 
-        MultiSelect::with_theme(&theme)
-            .with_prompt("Select integrations to install")
-            .items(&labels)
-            .defaults(&defaults)
-            .interact()?
-    };
-
-    if selected.is_empty() {
-        println!("  \x1b[2mNo integrations selected.\x1b[0m");
+        println!("  \x1b[2m<space> toggle  <enter> confirm\x1b[0m");
         println!();
-        return Ok(());
-    }
 
-    // Confirm unless --yes
-    if !yes {
-        let names: Vec<&str> = selected.iter().map(|&i| tools[i].name).collect();
-        let proceed = Confirm::with_theme(&theme)
-            .with_prompt(format!("Install integrations for {}?", names.join(", ")))
-            .default(true)
-            .interact()?;
+        // Loop: select → confirm → if "no", go back to select
+        loop {
+            let sel = MultiSelect::with_theme(&theme)
+                .with_prompt("Select integrations to install")
+                .items(&labels)
+                .defaults(&defaults)
+                .interact()?;
 
-        if !proceed {
-            println!("  \x1b[2mAborted.\x1b[0m");
-            return Ok(());
+            if sel.is_empty() {
+                println!("  \x1b[2mNo integrations selected.\x1b[0m");
+                println!();
+                return Ok(());
+            }
+
+            let names: Vec<&str> = sel.iter().map(|&i| tools[i].name).collect();
+            let proceed = Confirm::with_theme(&theme)
+                .with_prompt(format!("Install {}?", names.join(", ")))
+                .default(true)
+                .interact()?;
+
+            if proceed {
+                break sel;
+            }
+            // "No" → loop back to selection
+            println!();
         }
-    }
+    };
 
     println!();
 
