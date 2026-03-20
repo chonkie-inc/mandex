@@ -60,6 +60,12 @@ enum Commands {
         #[arg(long)]
         version: Option<String>,
     },
+    /// Set up AI coding assistant integrations
+    Init {
+        /// Non-interactive: auto-install detected integrations
+        #[arg(long, short)]
+        yes: bool,
+    },
 }
 
 fn main() -> Result<()> {
@@ -87,5 +93,6 @@ fn main() -> Result<()> {
         Commands::Remove { package, version } => {
             commands::remove::run(&package, version.as_deref())
         }
+        Commands::Init { yes } => commands::init::run(yes),
     }
 }
