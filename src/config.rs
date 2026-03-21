@@ -127,11 +127,17 @@ impl ConfigFile {
 }
 
 /// Run first-time setup: download the reranker model if missing.
+#[cfg(feature = "reranker")]
 pub fn ensure_setup(config: &ConfigFile) -> Result<()> {
     let model_path = resolve_model_path(&config.search.rerank_model)?;
     if !model_path.exists() {
         crate::rerank::ensure_model(&model_path, &config.network.cdn_url)?;
     }
+    Ok(())
+}
+
+#[cfg(not(feature = "reranker"))]
+pub fn ensure_setup(_config: &ConfigFile) -> Result<()> {
     Ok(())
 }
 

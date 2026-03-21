@@ -1,5 +1,6 @@
 mod commands;
 mod config;
+#[cfg(feature = "reranker")]
 mod rerank;
 mod storage;
 

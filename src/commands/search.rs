@@ -1,6 +1,10 @@
 use anyhow::Result;
 
+#[cfg(feature = "reranker")]
 use crate::config::{self, ConfigFile};
+#[cfg(not(feature = "reranker"))]
+use crate::config::ConfigFile;
+#[cfg(feature = "reranker")]
 use crate::rerank;
 use crate::storage::{db, paths};
 
@@ -52,11 +56,18 @@ pub fn run(
 
         let mut results = db::search(&conn, query, fetch_limit)?;
 
+        #[cfg(feature = "reranker")]
         if use_rerank && !results.is_empty() {
             let model_path = config::resolve_model_path(&config.search.rerank_model)?;
             rerank::ensure_model(&model_path, &config.network.cdn_url)?;
             results = rerank::rerank(&model_path, query, results, results_limit)?;
         } else {
+            results.truncate(results_limit);
+        }
+
+        #[cfg(not(feature = "reranker"))]
+        {
+            let _ = (use_rerank, config);
             results.truncate(results_limit);
         }
 
