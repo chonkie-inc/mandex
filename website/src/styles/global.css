@@ -152,9 +152,7 @@ code, pre, .font-mono {
   position: absolute;
   top: 8px;
   right: 8px;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-family: 'Geist Mono', monospace;
+  padding: 6px;
   color: var(--color-text-tertiary);
   background: var(--color-background);
   border: 1px solid var(--color-border);
@@ -169,6 +167,10 @@ code, pre, .font-mono {
 .prose ul { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--color-text-secondary); list-style-type: disc; }
 .prose ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--color-text-secondary); list-style-type: decimal; }
 .prose li { margin-bottom: 0.25rem; line-height: 1.75; }
+.prose table { width: 100%; margin-bottom: 1rem; border-collapse: collapse; font-size: 0.875rem; }
+.prose th { text-align: left; font-weight: 600; padding: 0.5rem 0.75rem; border-bottom: 2px solid var(--color-border); color: var(--color-text); }
+.prose td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); color: var(--color-text-secondary); }
+.prose td code { font-size: 0.8rem; }
 .prose code:not(pre code) {
   background-color: var(--color-background-secondary);
   padding: 0.15em 0.35em;
