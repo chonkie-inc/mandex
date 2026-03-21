@@ -26,11 +26,8 @@ function formatSize(bytes: number): string {
 // Total versions across all packages
 const totalVersions = packages.reduce((sum, p) => sum + (p.version_count || 1), 0);
 
-// Fill 4x5 = 20 cells, repeating if needed
-const gridPackages: Package[] = [];
-for (let i = 0; i < 20; i++) {
-  gridPackages.push(packages[i % packages.length]);
-}
+// Fill 3x5 = 15 cells
+const gridPackages = packages.slice(0, 15);
 ---
 
 <Layout title="mandex — documentation packages for AI agents">
@@ -79,16 +76,11 @@ for (let i = 0; i < 20; i++) {
                 <span class="text-[13px]">Copy install command</span>
               </button>
               <a
-                href="https://github.com/chonkie-inc/mandex"
-                target="_blank"
-                rel="noopener"
+                href="/about"
                 class="flex items-center gap-2 px-4 py-2 border text-sm font-medium transition-colors"
-                style="border-color: var(--color-border); color: var(--color-text-secondary);"
+                style="border-color: var(--color-border); color: var(--color-text-secondary); text-decoration: none;"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                View on GitHub
+                Learn more →
               </a>
             </div>
           </div>
@@ -341,16 +333,16 @@ for (let i = 0; i < 20; i++) {
       <div class="py-16 px-6 md:px-10 lg:px-16">
         <div class="mx-auto" style="max-width: 1200px;">
         <p
-          class="text-center text-2xl md:text-3xl font-bold tracking-tight mb-2"
+          class="text-center text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-2"
           style="color: var(--color-text);"
         >
-          Supports <span style="color: #059669;" id="pkg-count">{totalVersions.toLocaleString()}</span> package versions
+          Supports <span style="color: #059669;" id="pkg-count">{totalVersions.toLocaleString()}</span> packages
         </p>
         <p
           class="text-center text-sm mb-12"
           style="color: var(--color-text-tertiary);"
         >
-          and growing — <a href="/registry" style="text-decoration: underline;">view all</a>
+          <a href="/registry" style="text-decoration: underline;">see the full registry →</a>
         </p>
 
         <!-- Desktop: 5x4 square grid -->
@@ -391,6 +383,38 @@ for (let i = 0; i < 20; i++) {
             </a>
           ))}
         </div>
+        </div>
+      </div>
+
+      <!-- CTA section -->
+      <div style="border-top: 1px solid var(--color-border);"></div>
+      <div class="px-6 md:px-10 lg:px-16 py-16 md:py-20">
+        <div class="mx-auto text-center" style="max-width: 600px;">
+          <h2
+            class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6"
+            style="color: var(--color-text);"
+          >
+            Get started.
+          </h2>
+          <div class="flex flex-wrap justify-center gap-3">
+            <button
+              id="cta-copy"
+              class="group flex items-center gap-2.5 px-5 py-2.5 border text-sm font-medium transition-colors cursor-pointer"
+              style="background-color: #059669; color: white; border-color: #059669;"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+              </svg>
+              <span class="text-[13px]">Copy install command</span>
+            </button>
+            <a
+              href="/about"
+              class="flex items-center gap-2 px-5 py-2.5 border text-sm font-medium transition-colors"
+              style="border-color: var(--color-border); color: var(--color-text-secondary); text-decoration: none;"
+            >
+              Learn more →
+            </a>
+          </div>
         </div>
       </div>
 
@@ -471,16 +495,19 @@ for (let i = 0; i < 20; i++) {
   </style>
 
   <script is:inline>
-    document.getElementById('hero-copy')?.addEventListener('click', function() {
-      var cmd = 'curl -fsSL https://mandex.dev/install.sh | sh';
-      var btn = this;
-      navigator.clipboard.writeText(cmd).then(function() {
-        var original = btn.querySelector('span').textContent;
-        btn.querySelector('span').textContent = 'Copied!';
-        setTimeout(function() {
-          btn.querySelector('span').textContent = original;
-        }, 1500);
+    function setupCopyButton(id) {
+      document.getElementById(id)?.addEventListener('click', function() {
+        var cmd = 'curl -fsSL https://mandex.dev/install.sh | sh';
+        var btn = this;
+        navigator.clipboard.writeText(cmd).then(function() {
+          var span = btn.querySelector('span');
+          var original = span.textContent;
+          span.textContent = 'Copied!';
+          setTimeout(function() { span.textContent = original; }, 1500);
+        });
       });
-    });
+    }
+    setupCopyButton('hero-copy');
+    setupCopyButton('cta-copy');
   </script>
 </Layout>
