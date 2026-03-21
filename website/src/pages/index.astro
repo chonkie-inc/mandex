@@ -62,22 +62,11 @@ for (let i = 0; i < 20; i++) {
             style="border-color: var(--color-border); background-color: var(--color-background);"
           >
             <h1
-              class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05]"
+              class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]"
               style="color: var(--color-text);"
             >
               The <span style="color: #059669;">fastest</span> way for agents to get <span style="color: #059669;">docs</span>.
             </h1>
-            <div class="h-px" style="background-color: var(--color-border);"></div>
-            <p
-              class="text-base md:text-lg leading-relaxed"
-              style="color: var(--color-text-secondary);"
-            >
-              mandex pulls documentation as local docs indexes —
-              one download gives you instant search, exact version
-              pinning, and unlimited offline queries. No rate
-              limits, no latency, no API keys.
-            </p>
-            <div class="h-px" style="background-color: var(--color-border);"></div>
             <div class="flex flex-wrap items-center gap-3">
               <button
                 id="hero-copy"
@@ -114,13 +103,26 @@ for (let i = 0; i < 20; i++) {
         </div>
       </div>
 
-      <!-- Bottom border of box -->
+      <!-- Horizontal rule connecting rails -->
+      <div style="border-top: 1px solid var(--color-border);"></div>
+
+      <!-- Big subtitle section -->
+      <div class="px-6 md:px-10 lg:px-16 py-10 md:py-14">
+        <p
+          class="text-xl md:text-2xl lg:text-3xl leading-relaxed"
+          style="color: var(--color-text-secondary); max-width: 1200px; margin: 0 auto;"
+        >
+          mandex pulls documentation as local docs indexes — one download gives you instant search, exact version pinning, and unlimited offline queries. <span style="color: var(--color-text);">No rate limits, no latency, no API keys.</span>
+        </p>
+      </div>
+
+      <!-- Horizontal rule connecting rails -->
       <div style="border-top: 1px solid var(--color-border);"></div>
 
       <!-- Integrates with section (inside the same vertical rails) -->
-      <div>
+      <div class="pt-6">
         <!-- Divider with label -->
-        <div class="relative flex items-center mb-3">
+        <div class="relative flex items-center mb-6">
           <div class="flex-1 h-px" style="background-color: var(--color-border);"></div>
           <span
             class="pl-4 pr-1 text-[13px] font-mono"
@@ -351,6 +353,46 @@ for (let i = 0; i < 20; i++) {
 
       <!-- Bottom border -->
       <div style="border-top: 1px solid var(--color-border);"></div>
+
+      <!-- Footer -->
+      <footer class="px-6 md:px-10 lg:px-16 py-10">
+        <div class="flex flex-col md:flex-row justify-between gap-8 mx-auto" style="max-width: 1200px;">
+          <!-- Left: branding -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <img src="/logo-black.png" alt="mandex" class="h-5 dark-hidden" />
+              <img src="/logo-white.png" alt="mandex" class="h-5 light-hidden" />
+              <span class="text-base font-light tracking-wide" style="color: var(--color-text);">mandex</span>
+            </div>
+            <p class="text-[12px] font-mono" style="color: var(--color-text-tertiary);">
+              Documentation packages for AI agents.
+            </p>
+            <p class="text-[11px] font-mono mt-2" style="color: var(--color-text-tertiary);">
+              &copy; <a href="https://chonkie.ai" target="_blank" rel="noopener" style="text-decoration: underline;">Chonkie, Inc.</a>
+            </p>
+          </div>
+
+          <!-- Right: link columns -->
+          <div class="flex gap-16">
+            <div class="flex flex-col gap-2">
+              <span class="text-[11px] font-mono font-semibold uppercase tracking-wider mb-1" style="color: var(--color-text-tertiary);">Product</span>
+              <a href="/registry" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">Registry</a>
+              <a href="/about" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">About</a>
+              <a href="https://docs.mandex.dev" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">Docs</a>
+            </div>
+            <div class="flex flex-col gap-2">
+              <span class="text-[11px] font-mono font-semibold uppercase tracking-wider mb-1" style="color: var(--color-text-tertiary);">Community</span>
+              <a href="https://github.com/chonkie-inc/mandex" target="_blank" rel="noopener" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">GitHub</a>
+              <a href="https://discord.gg/vH3SkRqmUz" target="_blank" rel="noopener" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">Discord</a>
+            </div>
+            <div class="flex flex-col gap-2">
+              <span class="text-[11px] font-mono font-semibold uppercase tracking-wider mb-1" style="color: var(--color-text-tertiary);">Install</span>
+              <a href="https://crates.io/crates/mandex" target="_blank" rel="noopener" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">crates.io</a>
+              <a href="https://github.com/chonkie-inc/mandex/releases" target="_blank" rel="noopener" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">Releases</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   </div>
 
