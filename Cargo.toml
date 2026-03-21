@@ -31,7 +31,7 @@ chunk = "0.9.2"
 stop-words = "0.10"
 ort = { version = "2.0.0-rc.12", features = ["ndarray"] }
 ndarray = "0.17"
-tokenizers = { version = "0.21", features = ["http"] }
+tokenizers = { version = "0.21", default-features = false, features = ["http", "rustls-tls", "esaxx_fast", "onig", "progressbar"] }
 
 [profile.release]
 opt-level = 3
