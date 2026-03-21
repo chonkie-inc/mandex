@@ -1,6 +1,36 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import TerminalDemo from '../components/TerminalDemo.astro';
+
+interface Package {
+  name: string;
+  description: string;
+  latest_version: string;
+  size_bytes: number;
+  entry_count: number;
+  version_count: number;
+}
+
+let packages: Package[] = [];
+try {
+  const res = await fetch('https://api.mandex.dev/packages');
+  packages = await res.json();
+} catch (e) {}
+
+function formatSize(bytes: number): string {
+  if (!bytes) return '—';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// Total versions across all packages
+const totalVersions = packages.reduce((sum, p) => sum + (p.version_count || 1), 0);
+
+// Fill 4x5 = 20 cells, repeating if needed
+const gridPackages: Package[] = [];
+for (let i = 0; i < 20; i++) {
+  gridPackages.push(packages[i % packages.length]);
+}
 ---
 
 <Layout title="mandex — documentation packages for AI agents">
@@ -24,15 +54,15 @@ import TerminalDemo from '../components/TerminalDemo.astro';
       </svg>
 
       <!-- Hero + Terminal area -->
-      <div class="flex-1 flex items-center justify-center px-6 md:px-10 lg:px-16 py-12 md:py-16">
+      <div class="flex items-center justify-center px-6 md:px-10 lg:px-16 py-12 md:py-16" style="min-height: 70vh;">
         <div class="flex flex-col md:flex-row gap-4 w-full" style="max-width: 1200px;">
           <!-- Hero -->
           <div
-            class="md:basis-[45%] border flex flex-col justify-center gap-4 px-8 py-6 md:px-10 md:py-8 self-center"
+            class="md:basis-[45%] border flex flex-col justify-between gap-4 px-8 py-6 md:px-10 md:py-8"
             style="border-color: var(--color-border); background-color: var(--color-background);"
           >
             <h1
-              class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.05]"
+              class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05]"
               style="color: var(--color-text);"
             >
               The <span style="color: #059669;">fastest</span> way for agents to get <span style="color: #059669;">docs</span>.
@@ -136,6 +166,191 @@ import TerminalDemo from '../components/TerminalDemo.astro';
         <!-- Bottom divider -->
         <div class="mt-3 h-px" style="background-color: var(--color-border);"></div>
       </div>
+
+      <!-- Features section -->
+      <div class="px-6 md:px-10 lg:px-16 py-16">
+        <p
+          class="text-center text-2xl md:text-3xl font-bold tracking-tight mb-12"
+          style="color: var(--color-text);"
+        >
+          Documentation as packages.<br/>
+          <span style="color: var(--color-text-tertiary);">Local, versioned, instant.</span>
+        </p>
+
+        <!-- Feature grid — Vercel-style with hero cell -->
+        <div class="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-3 mx-auto" style="max-width: 1200px;">
+          <!-- Hero cell (spans 2 rows on left) -->
+          <div
+            class="md:row-span-2 flex flex-col justify-between p-8 md:p-10 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 280px;"
+          >
+            <div>
+              <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3" style="color: var(--color-text);">
+                Built for agents,<br/>not humans.
+              </h3>
+              <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary);">
+                mandex packages are structured for machine consumption — indexed, chunked, and ranked for LLM retrieval.
+              </p>
+            </div>
+            <div class="mt-6 font-mono text-[12px] leading-relaxed" style="color: var(--color-text-tertiary);">
+              <div>$ mx search react "useEffect cleanup"</div>
+              <div style="color: #059669;">✓ 3 results (2ms)</div>
+            </div>
+          </div>
+
+          <!-- Top-right cards -->
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 200px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Local-first</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                Docs live on disk. No network after install — search is instant, works offline.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[20px]" style="color: var(--color-text-tertiary);">⚡</div>
+          </div>
+
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 200px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Version-pinned</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                Every package is tied to an exact version. No stale docs, no mismatched APIs.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[20px]" style="color: var(--color-text-tertiary);">📌</div>
+          </div>
+
+          <!-- Bottom-right cards -->
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 200px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Reranked search</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                FTS5 + ONNX cross-encoder. Results scored by relevance, not just keywords.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[12px] px-2 py-1 inline-block self-start" style="color: var(--color-text-tertiary); background: var(--color-background-secondary); border: 1px solid var(--color-border);">--rerank</div>
+          </div>
+
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 200px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Free forever</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                No API keys, no rate limits. Pull once, query forever.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[20px]" style="color: var(--color-text-tertiary);">∞</div>
+          </div>
+        </div>
+
+        <!-- Second row — full width cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mx-auto mt-3" style="max-width: 1200px;">
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 180px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Multi-agent</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                Works with Claude Code, Cursor, Codex, Windsurf — any tool that can run shell commands.
+              </p>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Claude</span>
+              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Cursor</span>
+              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Codex</span>
+              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Windsurf</span>
+            </div>
+          </div>
+
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 180px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">One command</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                Reads package.json, requirements.txt, Cargo.toml — pulls docs for every dependency automatically.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[13px] px-3 py-2" style="background: var(--color-background-secondary); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
+              $ mx sync
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registry section -->
+      <div style="border-top: 1px solid var(--color-border);"></div>
+
+      <div class="py-16 px-6 md:px-10 lg:px-16">
+        <div class="mx-auto" style="max-width: 1200px;">
+        <p
+          class="text-center text-2xl md:text-3xl font-bold tracking-tight mb-2"
+          style="color: var(--color-text);"
+        >
+          Supports <span style="color: #059669;" id="pkg-count">{totalVersions.toLocaleString()}</span> package versions
+        </p>
+        <p
+          class="text-center text-sm mb-12"
+          style="color: var(--color-text-tertiary);"
+        >
+          and growing — <a href="/registry" style="text-decoration: underline;">view all</a>
+        </p>
+
+        <!-- Desktop: 5x4 square grid -->
+        <div class="hidden md:grid grid-cols-5" style="border: 1px solid var(--color-border);">
+          {gridPackages.map((pkg, i) => (
+            <a
+              href={`/packages/${pkg.name}`}
+              class="flex flex-col items-center justify-center gap-1.5 transition-colors hover:bg-[var(--color-background-secondary)] border"
+              style="text-decoration: none; aspect-ratio: 1; border-color: var(--color-border); margin: -0.5px;"
+            >
+              <span class="text-[14px] font-mono font-semibold" style="color: var(--color-text);">
+                {pkg.name}
+              </span>
+              <span class="text-[11px] font-mono" style="color: var(--color-text-tertiary);">
+                v{pkg.latest_version}
+              </span>
+              <span class="text-[10px] font-mono" style="color: var(--color-text-tertiary);">
+                {formatSize(pkg.size_bytes)}
+              </span>
+            </a>
+          ))}
+        </div>
+
+        <!-- Mobile: simple list -->
+        <div class="md:hidden border" style="border-color: var(--color-border);">
+          {packages.map((pkg) => (
+            <a
+              href={`/packages/${pkg.name}`}
+              class="flex items-center justify-between px-4 py-3 border-b transition-colors hover:bg-[var(--color-background-secondary)]"
+              style="text-decoration: none; border-color: var(--color-border);"
+            >
+              <span class="text-[14px] font-mono font-semibold" style="color: var(--color-text);">
+                {pkg.name}
+              </span>
+              <span class="text-[11px] font-mono" style="color: var(--color-text-tertiary);">
+                v{pkg.latest_version} · {formatSize(pkg.size_bytes)}
+              </span>
+            </a>
+          ))}
+        </div>
+        </div>
+      </div>
+
+      <!-- Bottom border -->
+      <div style="border-top: 1px solid var(--color-border);"></div>
     </div>
   </div>
 
