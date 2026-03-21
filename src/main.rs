@@ -81,6 +81,8 @@ enum Commands {
         #[arg(long, short)]
         yes: bool,
     },
+    /// Sync documentation for all project dependencies
+    Sync,
 }
 
 fn main() -> Result<()> {
@@ -127,5 +129,6 @@ fn main() -> Result<()> {
             commands::remove::run(&package, version.as_deref())
         }
         Commands::Init { yes } => commands::init::run(yes),
+        Commands::Sync => commands::sync::run(),
     }
 }

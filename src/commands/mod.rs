@@ -6,3 +6,4 @@ pub mod pull;
 pub mod remove;
 pub mod search;
 pub mod show;
+pub mod sync;
