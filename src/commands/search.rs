@@ -1,8 +1,17 @@
 use anyhow::Result;
 
+use crate::config::{self, ConfigFile};
+use crate::rerank;
 use crate::storage::{db, paths};
 
-pub fn run(package: Option<&str>, query: &str) -> Result<()> {
+pub fn run(
+    package: Option<&str>,
+    query: &str,
+    results_limit: usize,
+    use_rerank: bool,
+    rerank_candidates: usize,
+    config: &ConfigFile,
+) -> Result<()> {
     let packages = match package {
         Some(name) => {
             let pkg_dir = paths::package_dir(name)?;
@@ -27,6 +36,13 @@ pub fn run(package: Option<&str>, query: &str) -> Result<()> {
         return Ok(());
     }
 
+    // If reranking, fetch more candidates from FTS5; otherwise just fetch the limit
+    let fetch_limit = if use_rerank {
+        rerank_candidates.max(results_limit)
+    } else {
+        results_limit
+    };
+
     let mut total_results = 0;
 
     for (name, versions) in &packages {
@@ -34,17 +50,23 @@ pub fn run(package: Option<&str>, query: &str) -> Result<()> {
         let db_path = paths::package_db_path(name, version)?;
         let conn = db::open_db(&db_path)?;
 
-        let results = db::search(&conn, query)?;
+        let mut results = db::search(&conn, query, fetch_limit)?;
+
+        if use_rerank && !results.is_empty() {
+            let model_path = config::resolve_model_path(&config.search.rerank_model)?;
+            rerank::ensure_model(&model_path, &config.network.cdn_url)?;
+            results = rerank::rerank(&model_path, query, results, results_limit)?;
+        } else {
+            results.truncate(results_limit);
+        }
+
         for result in &results {
-            // Header: package@version — entry name
             println!(
                 "\x1b[33m{name}@{version}\x1b[0m — \x1b[1m{}\x1b[0m",
                 result.name
             );
             println!();
-            // Full content of the chunk
             println!("{}", result.content);
-            // Separator between results
             println!("\n{}\n", "─".repeat(60));
             total_results += 1;
         }

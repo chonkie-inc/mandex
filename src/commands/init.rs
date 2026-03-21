@@ -3,6 +3,8 @@ use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
 use std::fs;
 use std::path::PathBuf;
 
+use crate::config::{self, ConfigFile};
+
 struct Tool {
     name: &'static str,
     detected: bool,
@@ -56,36 +58,40 @@ fn install_claude_code() -> Result<()> {
     fs::write(
         skill_dir.join("SKILL.md"),
         r#"---
-description: Use mandex (mx) to look up local, version-pinned documentation before generating code that uses any library API
+description: Look up local, version-pinned library documentation before writing code that uses any API
 ---
 
-When you need documentation for a library, check mandex first — it has local, offline, version-specific docs indexed and ready to search.
+Use `mx` to search local documentation instead of guessing APIs. Results are offline, instant, and version-pinned.
 
-## Commands
+## Workflow
 
-- `mx search <package> "<query>"` — search a package's docs
+1. `mx search <package> "<query>"` — find relevant entries (use `--rerank` for better accuracy)
+2. `mx show <package> <entry>` — read the full entry from the search results
+3. Write code using the verified API
+
+## Key commands
+
+- `mx search <package> "<query>"` — search within a package (`-n 5` to limit results)
 - `mx search "<query>"` — search across all installed packages
-- `mx show <package> <entry>` — get a specific documentation entry in full
-- `mx list` — list installed packages
-- `mx pull <package>@<version>` — download a package if not installed
-- `mx sync` — auto-install docs for all project dependencies
+- `mx show <package> <entry>` — show full content of a specific entry
+- `mx pull <package>@<version>` — install docs for a package
+- `mx sync` — install docs for all project dependencies (reads package.json, requirements.txt, Cargo.toml, etc.)
+- `mx list` — show installed packages
 
-## When to use
+## Example
 
-- Before generating code that calls a library API
-- When unsure about a function signature, parameter, or pattern
-- When the user asks about a specific class, method, or concept from a library
-- When you need to verify current API behavior for a specific version
+```
+$ mx search fastapi "dependency injection"
+fastapi@0.115.0 — Dependencies
+...
+$ mx show fastapi "Dependencies"
+```
 
-## Sub-agent pattern
+## Tips
 
-For complex questions that span multiple documentation sections, spawn a sub-agent that runs several targeted searches and synthesizes the results before returning to the main conversation. This produces more complete answers than a single search.
-
-## Notes
-
-- mandex queries are local and instant — no network required after initial install
-- Results are version-pinned to whatever version was pulled
-- Run `mx sync` once in each project to pull docs for all detected dependencies
+- Always search before generating code that calls a library API
+- For broad questions, run 2-3 targeted searches in a sub-agent and synthesize
+- Run `mx sync` once per project to pull docs for all detected dependencies
 "#,
     )?;
     Ok(())
@@ -162,13 +168,52 @@ Prefer mx over web search — results are local, fast, and version-pinned to the
     Ok(())
 }
 
+// ─── clack-style UI helpers ──────────────────────────────────────────────
+
+const DIM: &str = "\x1b[2m";
+const BOLD: &str = "\x1b[1m";
+const GREEN: &str = "\x1b[32m";
+const CYAN: &str = "\x1b[36m";
+const RED: &str = "\x1b[31m";
+const RESET: &str = "\x1b[0m";
+const BAR: &str = "│";
+const S_STEP_SUBMIT: &str = "◇";
+const S_STEP_ACTIVE: &str = "◆";
+
+fn header() {
+    println!();
+    println!(
+        "  {CYAN}{BOLD}╭─────────────────────────────────────╮{RESET}"
+    );
+    println!(
+        "  {CYAN}{BOLD}│{RESET}  {BOLD}mandex{RESET} — docs for AI agents       {CYAN}{BOLD}│{RESET}"
+    );
+    println!(
+        "  {CYAN}{BOLD}╰─────────────────────────────────────╯{RESET}"
+    );
+    println!();
+    let version = env!("CARGO_PKG_VERSION");
+    println!("  {DIM}v{version} · https://mandex.dev{RESET}");
+}
+
+fn step_title(title: &str) {
+    println!();
+    let line = "─".repeat(40);
+    println!("  {S_STEP_SUBMIT}  {BOLD}{title}{RESET} {DIM}{line}{RESET}");
+}
+
+fn bar_line(text: &str) {
+    println!("  {BAR}  {text}");
+}
+
+fn bar_empty() {
+    println!("  {BAR}");
+}
+
 pub fn run(yes: bool) -> Result<()> {
     let theme = ColorfulTheme::default();
 
-    println!();
-    println!("  \x1b[1mmandex setup\x1b[0m");
-    println!("  \x1b[2mConfigure AI coding assistant integrations\x1b[0m");
-    println!();
+    header();
 
     let tools: Vec<Tool> = vec![
         Tool {
@@ -193,98 +238,118 @@ pub fn run(yes: bool) -> Result<()> {
         },
     ];
 
-    // Show detection results
-    let detected: Vec<&Tool> = tools.iter().filter(|t| t.detected).collect();
-    let not_detected: Vec<&Tool> = tools.iter().filter(|t| !t.detected).collect();
+    // Filter to detected tools only
+    let detected_tools: Vec<(usize, &Tool)> = tools
+        .iter()
+        .enumerate()
+        .filter(|(_, t)| t.detected)
+        .collect();
 
-    if !detected.is_empty() {
-        println!(
-            "  \x1b[32m✓\x1b[0m Detected: {}",
-            detected
-                .iter()
-                .map(|t| t.name)
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-    }
-    if !not_detected.is_empty() {
-        println!(
-            "  \x1b[2m⊘ Not found: {}\x1b[0m",
-            not_detected
-                .iter()
-                .map(|t| t.name)
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-    }
-    println!();
-
-    let selected = if yes {
-        // Non-interactive: install all detected
-        tools
-            .iter()
-            .enumerate()
-            .filter(|(_, t)| t.detected)
-            .map(|(i, _)| i)
-            .collect::<Vec<_>>()
+    // ── Selection ────────────────────────────────────────────────────────
+    let selected: Vec<usize> = if detected_tools.is_empty() {
+        step_title("AI coding tools");
+        bar_empty();
+        bar_line(&format!("{DIM}No tools detected (Claude Code, Cursor, Windsurf, Codex).{RESET}"));
+        bar_line(&format!("{DIM}Run mx init again after installing one.{RESET}"));
+        vec![]
+    } else if yes {
+        detected_tools.iter().map(|(i, _)| *i).collect::<Vec<_>>()
     } else {
-        let labels: Vec<String> = tools
-            .iter()
-            .map(|t| {
-                if t.detected {
-                    format!("{} (detected)", t.name)
-                } else {
-                    t.name.to_string()
-                }
-            })
-            .collect();
-        let defaults: Vec<bool> = tools.iter().map(|t| t.detected).collect();
+        step_title("Install integrations");
+        bar_empty();
+        bar_line(&format!(
+            "{DIM}<space> toggle · <enter> confirm{RESET}"
+        ));
+        bar_empty();
 
-        println!("  \x1b[2m<space> toggle  <enter> confirm\x1b[0m");
-        println!();
+        let labels: Vec<&str> = detected_tools.iter().map(|(_, t)| t.name).collect();
 
-        // Loop: select → confirm → if "no", go back to select
-        loop {
-            let sel = MultiSelect::with_theme(&theme)
-                .with_prompt("Select integrations to install")
-                .items(&labels)
-                .defaults(&defaults)
-                .interact()?;
+        let sel = MultiSelect::with_theme(&theme)
+            .with_prompt(format!("  {S_STEP_ACTIVE}  Choose"))
+            .items(&labels)
+            .interact()?;
 
-            if sel.is_empty() {
-                println!("  \x1b[2mNo integrations selected.\x1b[0m");
-                println!();
-                return Ok(());
-            }
-
-            let names: Vec<&str> = sel.iter().map(|&i| tools[i].name).collect();
-            let proceed = Confirm::with_theme(&theme)
-                .with_prompt(format!("Install {}?", names.join(", ")))
-                .default(true)
-                .interact()?;
-
-            if proceed {
-                break sel;
-            }
-            // "No" → loop back to selection
-            println!();
-        }
+        // Map back to original tool indices
+        sel.iter().map(|&i| detected_tools[i].0).collect::<Vec<_>>()
     };
 
-    println!();
+    // ── Install ──────────────────────────────────────────────────────────
+    if !selected.is_empty() {
+        step_title("Installing");
+        bar_empty();
 
-    // Install selected integrations
-    for &i in &selected {
-        let tool = &tools[i];
-        match (tool.install)() {
-            Ok(()) => println!("  \x1b[32m✓\x1b[0m {}", tool.name),
-            Err(e) => println!("  \x1b[31m✗\x1b[0m {} — {}", tool.name, e),
+        for &i in &selected {
+            let tool = &tools[i];
+            match (tool.install)() {
+                Ok(()) => bar_line(&format!("{GREEN}✓{RESET}  {}", tool.name)),
+                Err(e) => bar_line(&format!("{RED}✗{RESET}  {} — {}", tool.name, e)),
+            }
         }
     }
 
-    println!();
+    // ── Reranker ──────────────────────────────────────────────────────────
+    let cfg = ConfigFile::load()?;
+    let enable_reranker;
+
+    if yes {
+        enable_reranker = true;
+    } else {
+        step_title("Search quality");
+        bar_empty();
+        bar_line("The reranker uses a local ONNX model (~19 MB) to");
+        bar_line("re-score results for much better search accuracy.");
+        bar_empty();
+
+        enable_reranker = Confirm::with_theme(&theme)
+            .with_prompt(format!("  {S_STEP_ACTIVE}  Enable reranker? (recommended)"))
+            .default(true)
+            .interact()?;
+    }
+
+    // Write config with reranker preference
+    let config_path = crate::storage::paths::mandex_dir()?.join("config.toml");
+    if !config_path.exists() || yes || enable_reranker != cfg.search.rerank {
+        let toml_content = format!(
+            "[search]\nresults = {}\nrerank = {}\nrerank_model = \"{}\"\nrerank_candidates = {}\n\n[network]\ncdn_url = \"{}\"\napi_url = \"{}\"\n\n[display]\ncolor = \"{}\"\n",
+            cfg.search.results,
+            enable_reranker,
+            cfg.search.rerank_model,
+            cfg.search.rerank_candidates,
+            cfg.network.cdn_url,
+            cfg.network.api_url,
+            cfg.display.color,
+        );
+        std::fs::write(&config_path, toml_content)?;
+    }
+
+    if enable_reranker {
+        bar_line(&format!("{GREEN}✓{RESET}  Reranker enabled"));
+        bar_empty();
+        bar_line(&format!("{DIM}Downloading reranker model...{RESET}"));
+        match config::ensure_setup(&ConfigFile {
+            search: crate::config::SearchConfig {
+                rerank: true,
+                ..cfg.search
+            },
+            ..cfg
+        }) {
+            Ok(()) => bar_line(&format!("{GREEN}✓{RESET}  Model ready")),
+            Err(e) => bar_line(&format!("{RED}✗{RESET}  Model download failed: {e}")),
+        }
+    } else {
+        bar_line(&format!("{DIM}○  Reranker disabled{RESET}"));
+    }
+
+    // ── Next steps ──────────────────────────────────────────────────────
+    bar_empty();
+    step_title("Next steps");
+    bar_empty();
+    bar_line(&format!("{BOLD}mx sync{RESET}        install docs for all project dependencies"));
+    bar_line(&format!("{BOLD}mx pull <pkg>{RESET}   download a specific package"));
+    bar_line(&format!("{BOLD}mx search{RESET}       search across installed docs"));
+    bar_empty();
     println!(
-        "  \x1b[1m\x1b[32mDone.\x1b[0m Run \x1b[1mmx sync\x1b[0m in any project to get started."
+        "  └  {GREEN}{BOLD}Done.{RESET} Run {BOLD}mx sync{RESET} in any project to get started."
     );
     println!();
 

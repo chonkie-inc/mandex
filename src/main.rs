@@ -1,4 +1,6 @@
 mod commands;
+mod config;
+mod rerank;
 mod storage;
 
 use anyhow::Result;
@@ -23,6 +25,18 @@ enum Commands {
         /// Optional package name to search within
         #[arg(num_args = 1..=2)]
         args: Vec<String>,
+        /// Number of results to return
+        #[arg(short = 'n', long = "limit")]
+        limit: Option<usize>,
+        /// Enable ONNX reranker for this query
+        #[arg(long = "rerank", conflicts_with = "no_rerank")]
+        rerank: bool,
+        /// Disable ONNX reranker for this query
+        #[arg(long = "no-rerank", conflicts_with = "rerank")]
+        no_rerank: bool,
+        /// Number of FTS5 candidates to fetch before reranking
+        #[arg(long = "rerank-candidates")]
+        rerank_candidates: Option<usize>,
     },
     /// Show a specific documentation entry
     Show {
@@ -69,17 +83,35 @@ enum Commands {
 }
 
 fn main() -> Result<()> {
+    let cfg = config::ConfigFile::load()?;
     let cli = Cli::parse();
 
     match cli.command {
         Commands::Pull { package } => commands::pull::run(&package),
-        Commands::Search { args } => {
+        Commands::Search {
+            args,
+            limit,
+            rerank,
+            no_rerank,
+            rerank_candidates,
+        } => {
             let (package, query) = if args.len() == 2 {
                 (Some(args[0].as_str()), args[1].as_str())
             } else {
                 (None, args[0].as_str())
             };
-            commands::search::run(package, query)
+
+            let results_limit = limit.unwrap_or(cfg.search.results);
+            let use_rerank = if rerank {
+                true
+            } else if no_rerank {
+                false
+            } else {
+                cfg.search.rerank
+            };
+            let candidates = rerank_candidates.unwrap_or(cfg.search.rerank_candidates);
+
+            commands::search::run(package, query, results_limit, use_rerank, candidates, &cfg)
         }
         Commands::Show { package, entry } => commands::show::run(&package, &entry),
         Commands::List => commands::list::run(),

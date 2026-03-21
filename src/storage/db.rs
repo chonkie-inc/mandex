@@ -105,31 +105,34 @@ const AND_BOOST: f64 = 2.0;
 
 /// Searches the FTS5 index using BM25 ranking.
 /// Runs both AND and OR queries, merges results with AND results boosted.
-pub fn search(conn: &Connection, query: &str) -> Result<Vec<SearchResult>> {
+pub fn search(conn: &Connection, query: &str, limit: usize) -> Result<Vec<SearchResult>> {
     let stop_words: std::collections::HashSet<String> = stop_words::get(stop_words::LANGUAGE::English)
         .iter()
         .map(|s| s.to_string())
         .collect();
 
-    let words: Vec<&str> = query
+    // Strip punctuation, then filter stop words
+    let cleaned: Vec<String> = query
         .split_whitespace()
-        .filter(|w| !stop_words.contains(&w.to_lowercase()))
+        .map(|w| w.chars().filter(|c| c.is_alphanumeric()).collect::<String>())
+        .filter(|w| !w.is_empty() && !stop_words.contains(&w.to_lowercase()))
         .collect();
+    let words: Vec<&str> = cleaned.iter().map(|s| s.as_str()).collect();
 
     // Single word — no need for AND/OR merging
     if words.len() <= 1 {
         let fts_query = if words.is_empty() { query.to_string() } else { words[0].to_string() };
-        return run_fts_query(conn, &fts_query, 1.0);
+        return run_fts_query(conn, &fts_query, 1.0, limit);
     }
 
     let and_query = words.join(" ");
     let or_query = words.join(" OR ");
 
     // Run AND query (boosted)
-    let and_results = run_fts_query(conn, &and_query, AND_BOOST).unwrap_or_default();
+    let and_results = run_fts_query(conn, &and_query, AND_BOOST, limit).unwrap_or_default();
 
     // Run OR query (unboosted)
-    let or_results = run_fts_query(conn, &or_query, 1.0).unwrap_or_default();
+    let or_results = run_fts_query(conn, &or_query, 1.0, limit).unwrap_or_default();
 
     // Merge: AND results first, then OR-only results, deduped by name
     let mut seen = std::collections::HashSet::new();
@@ -143,23 +146,23 @@ pub fn search(conn: &Connection, query: &str) -> Result<Vec<SearchResult>> {
 
     // Sort by boosted rank (FTS5 ranks are negative — more negative is better)
     merged.sort_by(|a, b| a.rank.partial_cmp(&b.rank).unwrap_or(std::cmp::Ordering::Equal));
-    merged.truncate(10);
+    merged.truncate(limit);
 
     Ok(merged)
 }
 
-fn run_fts_query(conn: &Connection, fts_query: &str, boost: f64) -> Result<Vec<SearchResult>> {
+fn run_fts_query(conn: &Connection, fts_query: &str, boost: f64, limit: usize) -> Result<Vec<SearchResult>> {
     let mut stmt = conn.prepare(
         "SELECT e.name, e.content, rank
          FROM entries_fts
          JOIN entries e ON e.id = entries_fts.rowid
          WHERE entries_fts MATCH ?1
          ORDER BY rank
-         LIMIT 10",
+         LIMIT ?2",
     )?;
 
     let results = stmt
-        .query_map([fts_query], |row| {
+        .query_map(rusqlite::params![fts_query, limit], |row| {
             Ok(SearchResult {
                 name: row.get(0)?,
                 content: row.get(1)?,

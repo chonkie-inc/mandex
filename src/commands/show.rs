@@ -26,7 +26,7 @@ pub fn run(package: &str, entry: &str) -> Result<()> {
     }
 
     // Fall back to FTS search with the entry name as query
-    let results = db::search(&conn, entry)?;
+    let results = db::search(&conn, entry, 1)?;
     if let Some(result) = results.first() {
         println!("\x1b[1m{}\x1b[0m  \x1b[2m{package}@{version}\x1b[0m\n", result.name);
         println!("{}", result.content);
