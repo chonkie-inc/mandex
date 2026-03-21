@@ -7,7 +7,7 @@ set -e
 #   Non-interactive: curl -fsSL https://mandex.dev/install.sh | sh -s -- --yes
 #   Binary only:     curl -fsSL https://mandex.dev/install.sh | sh -s -- --none
 
-MANDEX_VERSION="0.1.5"
+MANDEX_VERSION="0.1.6"
 BINARY_BASE_URL="https://github.com/chonkie-inc/mandex/releases/download/v${MANDEX_VERSION}"
 INSTALL_DIR="$HOME/.local/bin"
 
