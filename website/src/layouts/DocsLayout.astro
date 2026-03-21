@@ -1,12 +1,9 @@
 ---
 import Layout from './Layout.astro';
 
-interface Props {
-  title: string;
-  description?: string;
-}
-
-const { title, description } = Astro.props;
+const { frontmatter } = Astro.props;
+const title = frontmatter?.title || 'Docs';
+const description = frontmatter?.description || '';
 const currentPath = Astro.url.pathname;
 
 const sidebar = [
@@ -40,8 +37,8 @@ function isActive(href: string) {
   <div class="flex-1 flex">
     <!-- Sidebar -->
     <aside
-      class="hidden md:flex shrink-0 flex-col border-r py-6 px-5 overflow-y-auto"
-      style="width: 240px; border-color: var(--color-border);"
+      class="hidden md:flex shrink-0 flex-col border-r py-6 px-5 sticky top-0 overflow-y-auto"
+      style="width: 240px; border-color: var(--color-border); height: 100vh;"
     >
       <a
         href="/docs/"
@@ -85,20 +82,108 @@ function isActive(href: string) {
     </aside>
 
     <!-- Content -->
-    <main class="flex-1 min-w-0 py-8 px-6 md:px-10 lg:px-16 overflow-y-auto">
-      <div style="max-width: 720px;">
+    <!-- Content + TOC -->
+    <div class="flex-1 flex min-w-0">
+      <!-- Main content -->
+      <main class="flex-1 min-w-0 py-8 px-6 md:px-10 overflow-y-auto" id="docs-content">
         <h1
-          class="text-3xl font-bold tracking-tight mb-2"
+          class="text-2xl md:text-3xl font-bold tracking-tight mb-1"
           style="color: var(--color-text);"
         >{title}</h1>
         {description && (
-          <p class="text-base mb-6" style="color: var(--color-text-tertiary);">{description}</p>
+          <p class="text-sm mb-4" style="color: var(--color-text-tertiary);">{description}</p>
         )}
-        <div class="h-px mb-8" style="background: var(--color-border);"></div>
+        <div class="h-px mb-6" style="background: var(--color-border);"></div>
         <div class="prose">
           <slot />
         </div>
-      </div>
-    </main>
+      </main>
+
+      <!-- Right TOC -->
+      <aside
+        class="hidden lg:block shrink-0 py-8 pr-6 pl-5 border-l sticky top-0 overflow-y-auto"
+        style="width: 200px; height: 100vh; border-color: var(--color-border);"
+      >
+        <div>
+          <span
+            class="text-[11px] font-mono font-semibold uppercase tracking-wider mb-3 block"
+            style="color: var(--color-text-tertiary);"
+          >On this page</span>
+          <nav id="docs-toc" class="flex flex-col gap-1">
+          </nav>
+        </div>
+      </aside>
+    </div>
+
+    <script is:inline>
+      (function() {
+        var content = document.getElementById('docs-content');
+        var toc = document.getElementById('docs-toc');
+        if (!content || !toc) return;
+
+        var headings = content.querySelectorAll('h2, h3');
+        headings.forEach(function(h) {
+          var id = h.textContent.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+          h.id = id;
+
+          var a = document.createElement('a');
+          a.href = '#' + id;
+          a.textContent = h.textContent;
+          a.style.textDecoration = 'none';
+          a.style.color = 'var(--color-text-tertiary)';
+          a.style.fontSize = '12px';
+          a.style.fontFamily = "'Geist Mono', monospace";
+          a.style.lineHeight = '1.6';
+          a.style.transition = 'color 0.15s';
+          if (h.tagName === 'H3') {
+            a.style.paddingLeft = '10px';
+          }
+          a.addEventListener('mouseenter', function() { this.style.color = 'var(--color-text)'; });
+          a.addEventListener('mouseleave', function() { this.style.color = 'var(--color-text-tertiary)'; });
+          toc.appendChild(a);
+        });
+
+        // Scroll spy
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              toc.querySelectorAll('a').forEach(function(a) {
+                a.style.color = 'var(--color-text-tertiary)';
+                a.style.borderLeft = 'none';
+                a.style.paddingLeft = a.dataset.indent === 'true' ? '10px' : '0';
+              });
+              var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+              if (active) {
+                active.style.color = 'var(--color-text)';
+                active.style.borderLeft = '2px solid #059669';
+                active.style.paddingLeft = active.dataset.indent === 'true' ? '12px' : '6px';
+              }
+            }
+          });
+        }, { rootMargin: '-80px 0px -60% 0px' });
+
+        headings.forEach(function(h) { observer.observe(h); });
+
+        // Mark h3 links for indent tracking
+        toc.querySelectorAll('a').forEach(function(a) {
+          if (a.style.paddingLeft === '10px') a.dataset.indent = 'true';
+        });
+        // Copy buttons on code blocks
+        content.querySelectorAll('pre').forEach(function(pre) {
+          var btn = document.createElement('button');
+          btn.className = 'copy-btn';
+          btn.textContent = 'copy';
+          btn.addEventListener('click', function() {
+            var code = pre.querySelector('code');
+            var text = code ? code.textContent : pre.textContent;
+            navigator.clipboard.writeText(text).then(function() {
+              btn.textContent = 'copied!';
+              setTimeout(function() { btn.textContent = 'copy'; }, 1500);
+            });
+          });
+          pre.appendChild(btn);
+        });
+      })();
+    </script>
   </div>
 </Layout>

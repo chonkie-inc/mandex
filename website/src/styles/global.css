@@ -147,10 +147,27 @@ code, pre, .font-mono {
 .prose h3 { font-size: 1.125rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; scroll-margin-top: 2rem; color: var(--color-text); }
 .prose p { font-size: 1rem; line-height: 1.75; margin-bottom: 1rem; color: var(--color-text-secondary); }
 .prose strong { color: var(--color-text); }
-.prose pre { overflow-x: auto; background-color: var(--color-background-secondary); border: 1px solid var(--color-border); padding: 1rem; margin-bottom: 1rem; font-size: 0.875rem; color: var(--color-text-secondary); }
+.prose pre { overflow-x: auto; background-color: var(--color-background-secondary); border: 1px solid var(--color-border); padding: 1rem; margin-bottom: 1rem; font-size: 0.875rem; color: var(--color-text-secondary); position: relative; }
+.prose pre .copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: 'Geist Mono', monospace;
+  color: var(--color-text-tertiary);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.prose pre:hover .copy-btn { opacity: 1; }
+.prose pre .copy-btn:hover { color: var(--color-text); }
 .prose a { text-decoration: underline; }
 .prose hr { border-color: var(--color-border); margin: 2.5rem 0; }
-.prose ul, .prose ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--color-text-secondary); }
+.prose ul { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--color-text-secondary); list-style-type: disc; }
+.prose ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--color-text-secondary); list-style-type: decimal; }
 .prose li { margin-bottom: 0.25rem; line-height: 1.75; }
 .prose code:not(pre code) {
   background-color: var(--color-background-secondary);
