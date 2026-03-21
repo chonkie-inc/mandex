@@ -1,72 +1,132 @@
 ---
 const feedItems = [
+  // 1. Init (once)
   {
     command: 'mx init --yes',
     output: [
       { text: '', type: 'blank' },
-      { text: '  \x1b[36m╭─────────────────────────────────────╮\x1b[0m', type: 'raw-ansi' },
-      { text: '  \x1b[36m│\x1b[0m  \x1b[1mmandex\x1b[0m — docs for AI agents       \x1b[36m│\x1b[0m', type: 'raw-ansi' },
-      { text: '  \x1b[36m╰─────────────────────────────────────╯\x1b[0m', type: 'raw-ansi' },
+      { text: ' ███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗██╗  ██╗', type: 'ascii-art' },
+      { text: ' ████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝╚██╗██╔╝', type: 'ascii-art' },
+      { text: ' ██╔████╔██║███████║██╔██╗ ██║██║  ██║█████╗   ╚███╔╝', type: 'ascii-art' },
+      { text: ' ██║╚██╔╝██║██╔══██║██║╚██╗██║██║  ██║██╔══╝   ██╔██╗', type: 'ascii-art' },
+      { text: ' ██║ ╚═╝ ██║██║  ██║██║ ╚████║██████╔╝███████╗██╔╝ ██╗', type: 'ascii-art' },
+      { text: ' ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝', type: 'ascii-art' },
       { text: '', type: 'blank' },
-      { text: '  v0.1.4 · https://mandex.dev', type: 'dim' },
+      { text: '  docs for agents', type: 'dim' },
       { text: '', type: 'blank' },
-      { text: '  ◇  Detected tools ────────────────────', type: 'step' },
-      { text: '  │', type: 'bar' },
+      { text: '  ◇  Detected tools ──────────', type: 'step' },
       { text: '  │  ● Claude Code', type: 'detected' },
       { text: '  │  ● Cursor', type: 'detected' },
-      { text: '  │  ○ Windsurf', type: 'not-detected' },
       { text: '  │  ● Codex', type: 'detected' },
-      { text: '  │', type: 'bar' },
       { text: '', type: 'blank' },
-      { text: '  ◇  Installing ────────────────────────', type: 'step' },
-      { text: '  │', type: 'bar' },
+      { text: '  ◇  Installing ──────────────', type: 'step' },
       { text: '  │  ✓ Claude Code', type: 'success' },
       { text: '  │  ✓ Cursor', type: 'success' },
       { text: '  │  ✓ Codex', type: 'success' },
       { text: '  │  ✓ Reranker enabled', type: 'success' },
-      { text: '  │', type: 'bar' },
       { text: '  │  ✓ Model ready', type: 'success' },
-      { text: '  │', type: 'bar' },
       { text: '', type: 'blank' },
-      { text: '  └  Done. Run mx sync to get started.', type: 'done' },
+      { text: '  └  Done.', type: 'done' },
       { text: '', type: 'blank' },
     ],
   },
+  // 2. Pull + Search cycle: fastapi
   {
     command: 'mx pull fastapi@0.115.0',
     output: [
-      { text: 'Downloading fastapi@0.115.0...', type: 'dim' },
-      { text: '  ↓ fastapi@0.115.0  2.1 MB', type: 'dim' },
-      { text: '  Installed to ~/.mandex/cache/fastapi/0.115.0.db', type: 'dim' },
-      { text: '  1,965 entries indexed', type: 'dim' },
+      { text: '↓ fastapi@0.115.0  2.1 MB', type: 'dim' },
+      { text: '✓ 1,965 entries indexed', type: 'success' },
     ],
   },
   {
     command: 'mx search fastapi "rate limiting"',
     output: [
-      { text: 'fastapi@0.115.0 — Rate Limiting Middleware', type: 'heading' },
+      { text: 'fastapi@0.115.0 — Rate Limiting', type: 'heading' },
       { text: '', type: 'blank' },
-      { text: 'You can add rate limiting to your FastAPI', type: 'prose' },
-      { text: 'application using the SlowAPI middleware.', type: 'prose' },
+      { text: 'Add rate limiting using SlowAPI:', type: 'prose' },
       { text: '', type: 'blank' },
       { text: '  from slowapi import Limiter', type: 'code' },
-      { text: '  from slowapi.util import get_remote_address', type: 'code' },
-      { text: '', type: 'blank' },
       { text: '  limiter = Limiter(', type: 'code' },
-      { text: '      key_func=get_remote_address', type: 'code' },
+      { text: '    key_func=get_remote_address', type: 'code' },
       { text: '  )', type: 'code' },
       { text: '', type: 'blank' },
-      { text: '────────────────────────────────────────', type: 'divider' },
-      { text: '1 result', type: 'dim' },
+      { text: '──────────────────────────────', type: 'divider' },
+      { text: '3 results (27ms)', type: 'dim' },
+    ],
+  },
+  // 3. Pull + Search cycle: react
+  {
+    command: 'mx pull react@19.2.4',
+    output: [
+      { text: '↓ react@19.2.4  1.5 MB', type: 'dim' },
+      { text: '✓ 1,949 entries indexed', type: 'success' },
     ],
   },
   {
+    command: 'mx search react "useEffect cleanup"',
+    output: [
+      { text: 'react@19.2.4 — useEffect', type: 'heading' },
+      { text: '', type: 'blank' },
+      { text: 'Return a cleanup function to run', type: 'prose' },
+      { text: 'when the component unmounts:', type: 'prose' },
+      { text: '', type: 'blank' },
+      { text: '  useEffect(() => {', type: 'code' },
+      { text: '    const id = setInterval(fn, ms)', type: 'code' },
+      { text: '    return () => clearInterval(id)', type: 'code' },
+      { text: '  }, [fn, ms])', type: 'code' },
+      { text: '', type: 'blank' },
+      { text: '──────────────────────────────', type: 'divider' },
+      { text: '5 results (24ms)', type: 'dim' },
+    ],
+  },
+  // 4. Pull + Search cycle: nextjs
+  {
+    command: 'mx pull nextjs@16.1.7',
+    output: [
+      { text: '↓ nextjs@16.1.7  2.5 MB', type: 'dim' },
+      { text: '✓ 3,412 entries indexed', type: 'success' },
+    ],
+  },
+  {
+    command: 'mx search nextjs "server actions"',
+    output: [
+      { text: 'nextjs@16.1.7 — Server Actions', type: 'heading' },
+      { text: '', type: 'blank' },
+      { text: 'Async functions executed on the', type: 'prose' },
+      { text: 'server, called from components:', type: 'prose' },
+      { text: '', type: 'blank' },
+      { text: '  "use server"', type: 'code' },
+      { text: '  async function create() {', type: 'code' },
+      { text: '    await db.insert(data)', type: 'code' },
+      { text: '  }', type: 'code' },
+      { text: '', type: 'blank' },
+      { text: '──────────────────────────────', type: 'divider' },
+      { text: '4 results (25ms)', type: 'dim' },
+    ],
+  },
+  // 5. Sync + Search cycle
+  {
     command: 'mx sync',
     output: [
-      { text: '✓ tailwindcss 4.2.1 → 4.2.2 (updated)', type: 'success' },
-      { text: '✓ react 19.2.3 → 19.2.4 (updated)', type: 'success' },
+      { text: '✓ tailwindcss 4.2.1 → 4.2.2', type: 'success' },
+      { text: '✓ react 19.2.3 → 19.2.4', type: 'success' },
       { text: '· drizzle-orm 0.45.1 (up to date)', type: 'dim' },
       { text: '· hono 4.12.8 (up to date)', type: 'dim' },
+      { text: '· astro 6.0.5 (up to date)', type: 'dim' },
+    ],
+  },
+  {
+    command: 'mx search hono "middleware"',
+    output: [
+      { text: 'hono@4.12.8 — Middleware', type: 'heading' },
+      { text: '', type: 'blank' },
+      { text: 'Register middleware with app.use():', type: 'prose' },
+      { text: '', type: 'blank' },
+      { text: '  app.use("*", logger())', type: 'code' },
+      { text: '  app.use("/api/*", cors())', type: 'code' },
+      { text: '', type: 'blank' },
+      { text: '──────────────────────────────', type: 'divider' },
+      { text: '6 results (22ms)', type: 'dim' },
     ],
   },
 ];
@@ -110,7 +170,7 @@ const feedItems = [
 
     <div
       id="terminal-demo"
-      class="h-full font-mono text-[13px] leading-[1.7] px-4 pt-4 overflow-hidden"
+      class="h-full font-mono text-[15px] leading-[1.7] px-5 pt-4 overflow-hidden"
       style="color: var(--color-text);"
     >
       <div id="demo-content"></div>
@@ -123,9 +183,9 @@ const feedItems = [
     var container = document.getElementById('demo-content');
     if (!container) return;
 
-    var CHAR_DELAY = 16;
-    var LINE_DELAY = 30;
-    var COMMAND_PAUSE = 800;
+    var CHAR_DELAY = 32;
+    var LINE_DELAY = 60;
+    var COMMAND_PAUSE = 1200;
     var currentItem = 0;
 
     function createLine(html, style) {
@@ -172,6 +232,12 @@ const feedItems = [
       if (type === 'blank') {
         html = '&nbsp;';
         s.lineHeight = '0.5';
+      } else if (type === 'ascii-art') {
+        s.color = '#059669';
+        s.fontSize = '8px';
+        s.lineHeight = '1.1';
+        s.letterSpacing = '-0.5px';
+        s.whiteSpace = 'pre';
       } else if (type === 'dim') {
         s.opacity = '0.4';
       } else if (type === 'bar') {

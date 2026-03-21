@@ -55,14 +55,14 @@ for (let i = 0; i < 20; i++) {
 
       <!-- Hero + Terminal area -->
       <div class="flex items-center justify-center px-6 md:px-10 lg:px-16 py-6 md:py-8" style="min-height: 70vh;">
-        <div class="flex flex-col md:flex-row gap-4 w-full" style="max-width: 1200px;">
+        <div class="flex flex-col md:flex-row md:items-stretch gap-4 w-full" style="max-width: 1200px; height: min(520px, 70vh);">
           <!-- Hero -->
           <div
             class="md:basis-[45%] border flex flex-col justify-between gap-4 px-8 py-6 md:px-10 md:py-8"
             style="border-color: var(--color-border); background-color: var(--color-background);"
           >
             <h1
-              class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]"
+              class="text-3xl md:text-4xl lg:text-[3.5rem] xl:text-[5rem] font-bold tracking-tight leading-[1.08]"
               style="color: var(--color-text);"
             >
               The <span style="color: #059669;">fastest</span> way for agents to get <span style="color: #059669;">docs</span>.
@@ -96,7 +96,6 @@ for (let i = 0; i < 20; i++) {
           <!-- Terminal Demo -->
           <div
             class="md:basis-[55%] overflow-hidden"
-            style="height: 520px;"
           >
             <TerminalDemo />
           </div>
@@ -137,30 +136,30 @@ for (let i = 0; i < 20; i++) {
 
           <div class="flex items-center gap-14 h-full marquee-track">
             <div class="flex items-center gap-14 shrink-0">
-              <img src="/agents/claude.svg" alt="Claude" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/cursor.svg" alt="Cursor" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/windsurf.svg" alt="Windsurf" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/codex.svg" alt="Codex" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/copilot.svg" alt="Copilot" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/gemini.svg" alt="Gemini" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/cline.svg" alt="Cline" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/openclaw.svg" alt="OpenClaw" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/amp.svg" alt="Amp" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/antigravity.svg" alt="Antigravity" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
-              <img src="/agents/clawdbot.svg" alt="Clawdbot" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <a href="https://claude.ai/download" target="_blank" rel="noopener"><img src="/agents/claude.svg" alt="Claude" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://cursor.com" target="_blank" rel="noopener"><img src="/agents/cursor.svg" alt="Cursor" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://windsurf.com" target="_blank" rel="noopener"><img src="/agents/windsurf.svg" alt="Windsurf" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://github.com/openai/codex" target="_blank" rel="noopener"><img src="/agents/codex.svg" alt="Codex" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://github.com/features/copilot" target="_blank" rel="noopener"><img src="/agents/copilot.svg" alt="Copilot" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://gemini.google.com" target="_blank" rel="noopener"><img src="/agents/gemini.svg" alt="Gemini" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://github.com/cline/cline" target="_blank" rel="noopener"><img src="/agents/cline.svg" alt="Cline" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://openclaw.ai" target="_blank" rel="noopener"><img src="/agents/openclaw.svg" alt="OpenClaw" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://ampcode.com" target="_blank" rel="noopener"><img src="/agents/amp.svg" alt="Amp" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://antigravity.google" target="_blank" rel="noopener"><img src="/agents/antigravity.svg" alt="Antigravity" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
+              <a href="https://github.com/clawdbot/clawdbot" target="_blank" rel="noopener"><img src="/agents/clawdbot.svg" alt="Clawdbot" class="h-36 opacity-40 hover:opacity-80 transition-opacity agent-logo" /></a>
             </div>
             <div class="flex items-center gap-14 shrink-0" aria-hidden="true">
-              <img src="/agents/claude.svg" alt="Claude" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/cursor.svg" alt="Cursor" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/windsurf.svg" alt="Windsurf" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/codex.svg" alt="Codex" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/copilot.svg" alt="Copilot" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/gemini.svg" alt="Gemini" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/cline.svg" alt="Cline" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/openclaw.svg" alt="OpenClaw" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/amp.svg" alt="Amp" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/antigravity.svg" alt="Antigravity" class="h-16 opacity-40 agent-logo" />
-              <img src="/agents/clawdbot.svg" alt="Clawdbot" class="h-16 opacity-40 agent-logo" />
+              <a href="https://claude.ai/download" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/claude.svg" alt="Claude" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://cursor.com" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/cursor.svg" alt="Cursor" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://windsurf.com" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/windsurf.svg" alt="Windsurf" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://github.com/openai/codex" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/codex.svg" alt="Codex" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://github.com/features/copilot" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/copilot.svg" alt="Copilot" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://gemini.google.com" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/gemini.svg" alt="Gemini" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://github.com/cline/cline" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/cline.svg" alt="Cline" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://openclaw.ai" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/openclaw.svg" alt="OpenClaw" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://ampcode.com" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/amp.svg" alt="Amp" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://antigravity.google" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/antigravity.svg" alt="Antigravity" class="h-24 opacity-40 agent-logo" /></a>
+              <a href="https://github.com/clawdbot/clawdbot" target="_blank" rel="noopener" tabindex="-1"><img src="/agents/clawdbot.svg" alt="Clawdbot" class="h-24 opacity-40 agent-logo" /></a>
             </div>
           </div>
         </div>
@@ -172,7 +171,7 @@ for (let i = 0; i < 20; i++) {
       <!-- Features section -->
       <div class="px-6 md:px-10 lg:px-16 py-16">
         <p
-          class="text-center text-2xl md:text-3xl font-bold tracking-tight mb-12"
+          class="text-center text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-12"
           style="color: var(--color-text);"
         >
           Documentation as packages.<br/>
@@ -188,15 +187,22 @@ for (let i = 0; i < 20; i++) {
           >
             <div>
               <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3" style="color: var(--color-text);">
-                Built for agents,<br/>not humans.
+                Built for <span style="color: #059669;">Agents</span>.
               </h3>
               <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary);">
                 mandex packages are structured for machine consumption — indexed, chunked, and ranked for LLM retrieval.
               </p>
             </div>
-            <div class="mt-6 font-mono text-[12px] leading-relaxed" style="color: var(--color-text-tertiary);">
-              <div>$ mx search react "useEffect cleanup"</div>
-              <div style="color: #059669;">✓ 3 results (2ms)</div>
+            <!-- Latency visual -->
+            <div class="mt-6">
+              <div class="flex items-baseline gap-3">
+                <span class="font-mono text-[40px] font-bold" style="color: #059669;">25ms</span>
+                <span class="text-[13px]" style="color: var(--color-text-tertiary);">avg search latency</span>
+              </div>
+              <div class="flex items-baseline gap-3 mt-1">
+                <span class="font-mono text-[14px] line-through" style="color: var(--color-text-tertiary);">800ms</span>
+                <span class="text-[12px]" style="color: var(--color-text-tertiary);">typical API doc lookup</span>
+              </div>
             </div>
           </div>
 
@@ -206,12 +212,17 @@ for (let i = 0; i < 20; i++) {
             style="border-color: var(--color-border); min-height: 200px;"
           >
             <div>
-              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Local-first</h3>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Instant search</h3>
               <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
-                Docs live on disk. No network after install — search is instant, works offline.
+                Full-text search on disk. No network calls, no cold starts — results in single-digit milliseconds.
               </p>
             </div>
-            <div class="mt-4 font-mono text-[20px]" style="color: var(--color-text-tertiary);">⚡</div>
+            <!-- Mini search result preview -->
+            <div class="mt-4 font-mono text-[11px] leading-[1.6] px-3 py-2" style="background: var(--color-background-secondary); border: 1px solid var(--color-border); color: var(--color-text-tertiary);">
+              <div style="color: var(--color-text-secondary);">fastapi@0.115.0 — Rate Limiting</div>
+              <div>from slowapi import Limiter</div>
+              <div style="color: #059669;">3 results (27ms)</div>
+            </div>
           </div>
 
           <div
@@ -224,7 +235,12 @@ for (let i = 0; i < 20; i++) {
                 Every package is tied to an exact version. No stale docs, no mismatched APIs.
               </p>
             </div>
-            <div class="mt-4 font-mono text-[20px]" style="color: var(--color-text-tertiary);">📌</div>
+            <!-- Version badges -->
+            <div class="flex flex-wrap gap-1.5 mt-4">
+              <span class="font-mono text-[11px] px-2 py-0.5" style="background: var(--color-background-secondary); border: 1px solid var(--color-border); color: var(--color-text-secondary);">fastapi@0.115.0</span>
+              <span class="font-mono text-[11px] px-2 py-0.5" style="background: var(--color-background-secondary); border: 1px solid var(--color-border); color: var(--color-text-secondary);">react@19.2.4</span>
+              <span class="font-mono text-[11px] px-2 py-0.5" style="background: var(--color-background-secondary); border: 1px solid var(--color-border); color: var(--color-text-secondary);">nextjs@16.1.7</span>
+            </div>
           </div>
 
           <!-- Bottom-right cards -->
@@ -233,12 +249,26 @@ for (let i = 0; i < 20; i++) {
             style="border-color: var(--color-border); min-height: 200px;"
           >
             <div>
-              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Reranked search</h3>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Reranked results</h3>
               <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
-                FTS5 + ONNX cross-encoder. Results scored by relevance, not just keywords.
+                Neural reranker scores results by semantic relevance, not just keyword frequency.
               </p>
             </div>
-            <div class="mt-4 font-mono text-[12px] px-2 py-1 inline-block self-start" style="color: var(--color-text-tertiary); background: var(--color-background-secondary); border: 1px solid var(--color-border);">--rerank</div>
+            <!-- Ranked results visual -->
+            <div class="mt-4 flex flex-col gap-1">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-[11px] font-bold" style="color: #059669;">1</span>
+                <div class="flex-1 h-2 rounded-full" style="background: #059669; width: 95%;"></div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-[11px] font-bold" style="color: var(--color-text-tertiary);">2</span>
+                <div class="h-2 rounded-full" style="background: var(--color-border); width: 60%;"></div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-[11px] font-bold" style="color: var(--color-text-tertiary);">3</span>
+                <div class="h-2 rounded-full" style="background: var(--color-border); width: 35%;"></div>
+              </div>
+            </div>
           </div>
 
           <div
@@ -248,10 +278,13 @@ for (let i = 0; i < 20; i++) {
             <div>
               <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Free forever</h3>
               <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
-                No API keys, no rate limits. Pull once, query forever.
+                No API keys, no rate limits, no subscriptions. Pull once, query unlimited.
               </p>
             </div>
-            <div class="mt-4 font-mono text-[20px]" style="color: var(--color-text-tertiary);">∞</div>
+            <div class="mt-4 flex items-baseline gap-2">
+              <span class="font-mono text-[36px] font-bold" style="color: var(--color-text);">$0</span>
+              <span class="text-[12px]" style="color: var(--color-text-tertiary);">/ forever</span>
+            </div>
           </div>
         </div>
 
@@ -262,16 +295,18 @@ for (let i = 0; i < 20; i++) {
             style="border-color: var(--color-border); min-height: 180px;"
           >
             <div>
-              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Multi-agent</h3>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Works everywhere</h3>
               <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
-                Works with Claude Code, Cursor, Codex, Windsurf — any tool that can run shell commands.
+                Any tool that can run a shell command can use mandex. Auto-detects and configures on install.
               </p>
             </div>
-            <div class="flex gap-2 mt-4">
-              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Claude</span>
-              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Cursor</span>
-              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Codex</span>
-              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Windsurf</span>
+            <div class="flex flex-wrap gap-2 mt-4 items-center overflow-hidden">
+              <img src="/agents/claude.svg" alt="Claude" class="h-10 md:h-12 opacity-50 agent-logo" />
+              <img src="/agents/cursor.svg" alt="Cursor" class="h-10 md:h-12 opacity-50 agent-logo" />
+              <img src="/agents/codex.svg" alt="Codex" class="h-10 md:h-12 opacity-50 agent-logo" />
+              <img src="/agents/windsurf.svg" alt="Windsurf" class="h-10 md:h-12 opacity-50 agent-logo" />
+              <img src="/agents/copilot.svg" alt="Copilot" class="h-10 md:h-12 opacity-50 agent-logo" />
+              <img src="/agents/gemini.svg" alt="Gemini" class="h-10 md:h-12 opacity-50 agent-logo" />
             </div>
           </div>
 
@@ -280,13 +315,21 @@ for (let i = 0; i < 20; i++) {
             style="border-color: var(--color-border); min-height: 180px;"
           >
             <div>
-              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">One command</h3>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Auto-syncs</h3>
               <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
-                Reads package.json, requirements.txt, Cargo.toml — pulls docs for every dependency automatically.
+                Reads your project files and pulls docs for every dependency automatically. Supports all major ecosystems.
               </p>
             </div>
-            <div class="mt-4 font-mono text-[13px] px-3 py-2" style="background: var(--color-background-secondary); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
-              $ mx sync
+            <div class="flex gap-5 mt-4 items-center">
+              <a href="https://pypi.org" target="_blank" rel="noopener" class="transition-opacity hover:opacity-70">
+                <img src="/agents/pypi.svg" alt="PyPI" class="h-8" style="filter: brightness(0) saturate(100%) invert(38%) sepia(93%) saturate(382%) hue-rotate(173deg);" />
+              </a>
+              <a href="https://www.npmjs.com" target="_blank" rel="noopener" class="transition-opacity hover:opacity-70">
+                <img src="/agents/npm.svg" alt="npm" class="h-8" style="filter: brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2427%) hue-rotate(349deg);" />
+              </a>
+              <a href="https://crates.io" target="_blank" rel="noopener" class="transition-opacity hover:opacity-70">
+                <img src="/agents/crates.svg" alt="crates.io" class="h-8" />
+              </a>
             </div>
           </div>
         </div>

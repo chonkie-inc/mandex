@@ -173,7 +173,6 @@ Prefer mx over web search — results are local, fast, and version-pinned to the
 const DIM: &str = "\x1b[2m";
 const BOLD: &str = "\x1b[1m";
 const GREEN: &str = "\x1b[32m";
-const CYAN: &str = "\x1b[36m";
 const RED: &str = "\x1b[31m";
 const RESET: &str = "\x1b[0m";
 const BAR: &str = "│";
@@ -182,15 +181,12 @@ const S_STEP_ACTIVE: &str = "◆";
 
 fn header() {
     println!();
-    println!(
-        "  {CYAN}{BOLD}╭─────────────────────────────────────╮{RESET}"
-    );
-    println!(
-        "  {CYAN}{BOLD}│{RESET}  {BOLD}mandex{RESET} — docs for AI agents       {CYAN}{BOLD}│{RESET}"
-    );
-    println!(
-        "  {CYAN}{BOLD}╰─────────────────────────────────────╯{RESET}"
-    );
+    println!("  {GREEN} ███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗██╗  ██╗{RESET}");
+    println!("  {GREEN} ████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝╚██╗██╔╝{RESET}");
+    println!("  {GREEN} ██╔████╔██║███████║██╔██╗ ██║██║  ██║█████╗   ╚███╔╝{RESET}");
+    println!("  {GREEN} ██║╚██╔╝██║██╔══██║██║╚██╗██║██║  ██║██╔══╝   ██╔██╗{RESET}");
+    println!("  {GREEN} ██║ ╚═╝ ██║██║  ██║██║ ╚████║██████╔╝███████╗██╔╝ ██╗{RESET}");
+    println!("  {GREEN} ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝{RESET}");
     println!();
     let version = env!("CARGO_PKG_VERSION");
     println!("  {DIM}v{version} · https://mandex.dev{RESET}");

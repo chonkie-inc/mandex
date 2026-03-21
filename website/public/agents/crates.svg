@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Pallet base -->
+  <polygon points="10,78 50,95 90,78 50,62" fill="#8B6914"/>
+  <polygon points="10,78 10,82 50,99 50,95" fill="#6B4F10"/>
+  <polygon points="90,78 90,82 50,99 50,95" fill="#7A5C12"/>
+
+  <!-- Back-left crate -->
+  <polygon points="15,60 38,48 38,28 15,40" fill="#D4A843"/>
+  <polygon points="38,48 55,58 55,38 38,28" fill="#C49B3A"/>
+  <polygon points="15,60 38,48 55,58 32,70" fill="#B88E30"/>
+  <!-- R circle on back-left -->
+  <circle cx="27" cy="48" r="6" fill="none" stroke="#8B6914" stroke-width="1.2"/>
+  <text x="27" y="52" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="bold" fill="#8B6914">R</text>
+
+  <!-- Back-right crate -->
+  <polygon points="45,52 68,40 68,20 45,32" fill="#D4A843"/>
+  <polygon points="68,40 85,50 85,30 68,20" fill="#C49B3A"/>
+  <polygon points="45,52 68,40 85,50 62,62" fill="#B88E30"/>
+  <!-- R circle on back-right -->
+  <circle cx="76" cy="38" r="6" fill="none" stroke="#8B6914" stroke-width="1.2"/>
+  <text x="76" y="42" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="bold" fill="#8B6914">R</text>
+
+  <!-- Front crate (larger, centered) -->
+  <polygon points="25,72 50,58 50,36 25,50" fill="#E8BC4A"/>
+  <polygon points="50,58 75,72 75,50 50,36" fill="#D4A843"/>
+  <polygon points="25,72 50,58 75,72 50,86" fill="#C49B3A"/>
+  <!-- R circle on front -->
+  <circle cx="62" cy="58" r="7" fill="none" stroke="#8B6914" stroke-width="1.5"/>
+  <text x="62" y="62.5" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="bold" fill="#8B6914">R</text>
+</svg>
