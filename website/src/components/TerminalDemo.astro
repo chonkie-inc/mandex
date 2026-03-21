@@ -1,0 +1,308 @@
+---
+const feedItems = [
+  {
+    command: 'mx init --yes',
+    output: [
+      { text: '', type: 'blank' },
+      { text: '  \x1b[36m╭─────────────────────────────────────╮\x1b[0m', type: 'raw-ansi' },
+      { text: '  \x1b[36m│\x1b[0m  \x1b[1mmandex\x1b[0m — docs for AI agents       \x1b[36m│\x1b[0m', type: 'raw-ansi' },
+      { text: '  \x1b[36m╰─────────────────────────────────────╯\x1b[0m', type: 'raw-ansi' },
+      { text: '', type: 'blank' },
+      { text: '  v0.1.4 · https://mandex.dev', type: 'dim' },
+      { text: '', type: 'blank' },
+      { text: '  ◇  Detected tools ────────────────────', type: 'step' },
+      { text: '  │', type: 'bar' },
+      { text: '  │  ● Claude Code', type: 'detected' },
+      { text: '  │  ● Cursor', type: 'detected' },
+      { text: '  │  ○ Windsurf', type: 'not-detected' },
+      { text: '  │  ● Codex', type: 'detected' },
+      { text: '  │', type: 'bar' },
+      { text: '', type: 'blank' },
+      { text: '  ◇  Installing ────────────────────────', type: 'step' },
+      { text: '  │', type: 'bar' },
+      { text: '  │  ✓ Claude Code', type: 'success' },
+      { text: '  │  ✓ Cursor', type: 'success' },
+      { text: '  │  ✓ Codex', type: 'success' },
+      { text: '  │  ✓ Reranker enabled', type: 'success' },
+      { text: '  │', type: 'bar' },
+      { text: '  │  ✓ Model ready', type: 'success' },
+      { text: '  │', type: 'bar' },
+      { text: '', type: 'blank' },
+      { text: '  └  Done. Run mx sync to get started.', type: 'done' },
+      { text: '', type: 'blank' },
+    ],
+  },
+  {
+    command: 'mx pull fastapi@0.115.0',
+    output: [
+      { text: 'Downloading fastapi@0.115.0...', type: 'dim' },
+      { text: '  ↓ fastapi@0.115.0  2.1 MB', type: 'dim' },
+      { text: '  Installed to ~/.mandex/cache/fastapi/0.115.0.db', type: 'dim' },
+      { text: '  1,965 entries indexed', type: 'dim' },
+    ],
+  },
+  {
+    command: 'mx search fastapi "rate limiting"',
+    output: [
+      { text: 'fastapi@0.115.0 — Rate Limiting Middleware', type: 'heading' },
+      { text: '', type: 'blank' },
+      { text: 'You can add rate limiting to your FastAPI', type: 'prose' },
+      { text: 'application using the SlowAPI middleware.', type: 'prose' },
+      { text: '', type: 'blank' },
+      { text: '  from slowapi import Limiter', type: 'code' },
+      { text: '  from slowapi.util import get_remote_address', type: 'code' },
+      { text: '', type: 'blank' },
+      { text: '  limiter = Limiter(', type: 'code' },
+      { text: '      key_func=get_remote_address', type: 'code' },
+      { text: '  )', type: 'code' },
+      { text: '', type: 'blank' },
+      { text: '────────────────────────────────────────', type: 'divider' },
+      { text: '1 result', type: 'dim' },
+    ],
+  },
+  {
+    command: 'mx sync',
+    output: [
+      { text: '✓ tailwindcss 4.2.1 → 4.2.2 (updated)', type: 'success' },
+      { text: '✓ react 19.2.3 → 19.2.4 (updated)', type: 'success' },
+      { text: '· drizzle-orm 0.45.1 (up to date)', type: 'dim' },
+      { text: '· hono 4.12.8 (up to date)', type: 'dim' },
+    ],
+  },
+];
+---
+
+<div
+  id="terminal-window"
+  class="flex flex-col h-full border cursor-pointer"
+  style="border-color: var(--color-border); border-radius: 8px; background: var(--color-background); overflow: hidden;"
+>
+  <!-- Window title bar -->
+  <div
+    class="relative flex items-center justify-center px-3 shrink-0"
+    style="border-bottom: 1px solid var(--color-border); height: 36px;"
+  >
+    <!-- Traffic light dots -->
+    <div class="absolute left-3 flex items-center gap-1.5">
+      <div class="w-3 h-3 rounded-full" style="background-color: #ff5f57;"></div>
+      <div class="w-3 h-3 rounded-full" style="background-color: #febc2e;"></div>
+      <div class="w-3 h-3 rounded-full" style="background-color: #28c840;"></div>
+    </div>
+    <!-- Title (always centered) -->
+    <span class="text-[12px] font-mono" style="color: var(--color-text-tertiary);">mandex</span>
+    <!-- Copy button (absolutely positioned, no layout shift) -->
+    <div
+      id="terminal-copy"
+      class="absolute right-3 flex items-center gap-1.5"
+      style="color: var(--color-text-tertiary); opacity: 0; transition: opacity 0.2s ease;"
+    >
+      <span class="text-[11px] font-mono" id="terminal-copy-label">copy install</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Terminal feed -->
+  <div class="relative flex-1 overflow-hidden">
+    <div class="absolute inset-x-0 top-0 h-8 z-10 pointer-events-none" style="background: linear-gradient(to bottom, var(--color-background), transparent);"></div>
+    <div class="absolute inset-x-0 bottom-0 h-8 z-10 pointer-events-none" style="background: linear-gradient(to top, var(--color-background), transparent);"></div>
+
+    <div
+      id="terminal-demo"
+      class="h-full font-mono text-[13px] leading-[1.7] px-4 pt-4 overflow-hidden"
+      style="color: var(--color-text);"
+    >
+      <div id="demo-content"></div>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ feedItems }}>
+  (function() {
+    var container = document.getElementById('demo-content');
+    if (!container) return;
+
+    var CHAR_DELAY = 16;
+    var LINE_DELAY = 30;
+    var COMMAND_PAUSE = 800;
+    var currentItem = 0;
+
+    function createLine(html, style) {
+      var div = document.createElement('div');
+      div.innerHTML = html;
+      if (style) {
+        for (var k in style) div.style[k] = style[k];
+      }
+      return div;
+    }
+
+    function typeCommand(text, el) {
+      return new Promise(function(resolve) {
+        var i = 0;
+        var cursor = document.createElement('span');
+        cursor.className = 'cursor-blink';
+        cursor.textContent = '▌';
+        cursor.style.opacity = '0.35';
+        el.appendChild(cursor);
+
+        function next() {
+          if (i < text.length) {
+            cursor.before(document.createTextNode(text[i]));
+            i++;
+            setTimeout(next, CHAR_DELAY + Math.random() * 8);
+          } else {
+            cursor.remove();
+            resolve();
+          }
+        }
+        next();
+      });
+    }
+
+    function scrollToBottom() {
+      var feed = document.getElementById('terminal-demo');
+      if (feed) feed.scrollTop = feed.scrollHeight;
+    }
+
+    function styleLine(text, type) {
+      var s = {};
+      var html = text;
+
+      if (type === 'blank') {
+        html = '&nbsp;';
+        s.lineHeight = '0.5';
+      } else if (type === 'dim') {
+        s.opacity = '0.4';
+      } else if (type === 'bar') {
+        s.opacity = '0.2';
+      } else if (type === 'step') {
+        s.fontWeight = '600';
+        s.opacity = '0.7';
+      } else if (type === 'detected') {
+        html = text.replace('●', '<span style="color:#059669">●</span>');
+        s.opacity = '0.6';
+      } else if (type === 'not-detected') {
+        s.opacity = '0.25';
+      } else if (type === 'success') {
+        html = text.replace('✓', '<span style="color:#059669">✓</span>');
+        s.opacity = '0.65';
+      } else if (type === 'done') {
+        html = text.replace('Done.', '<span style="color:#059669;font-weight:600">Done.</span>');
+        s.opacity = '0.7';
+      } else if (type === 'heading') {
+        s.fontWeight = '600';
+        s.opacity = '0.7';
+        html = text.replace(/^([^—]+)/, '<span style="color:#ca8a04">$1</span>');
+      } else if (type === 'prose') {
+        s.opacity = '0.45';
+      } else if (type === 'code') {
+        s.opacity = '0.55';
+        s.paddingLeft = '4px';
+      } else if (type === 'divider') {
+        s.opacity = '0.15';
+      } else if (type === 'raw-ansi') {
+        // Strip ANSI codes and apply cyan to box chars
+        html = text
+          .replace(/\x1b\[36m/g, '<span style="color:#06b6d4">')
+          .replace(/\x1b\[1m/g, '<span style="font-weight:700">')
+          .replace(/\x1b\[0m/g, '</span>');
+        s.opacity = '0.8';
+      }
+
+      return { html: html, style: s };
+    }
+
+    async function renderItem(item) {
+      // Command line
+      var cmdLine = createLine('');
+      var prompt = document.createElement('span');
+      prompt.style.color = '#059669';
+      prompt.style.opacity = '1';
+      prompt.textContent = '$ ';
+      cmdLine.appendChild(prompt);
+
+      var cmdSpan = document.createElement('span');
+      cmdSpan.style.fontWeight = '500';
+      cmdLine.appendChild(cmdSpan);
+
+      container.appendChild(cmdLine);
+      scrollToBottom();
+
+      await typeCommand(item.command, cmdSpan);
+      await new Promise(function(r) { setTimeout(r, LINE_DELAY * 3); });
+
+      // Output lines
+      for (var i = 0; i < item.output.length; i++) {
+        var line = item.output[i];
+        var result = styleLine(line.text, line.type);
+        var outLine = createLine(result.html, result.style);
+
+        if (line.type !== 'blank' && line.type !== 'bar' && line.type !== 'divider') {
+          outLine.style.transform = 'translateY(3px)';
+          outLine.style.transition = 'all 0.12s ease-out';
+          var origOpacity = outLine.style.opacity;
+          outLine.style.opacity = '0';
+          container.appendChild(outLine);
+          scrollToBottom();
+
+          requestAnimationFrame(function(el, op) {
+            return function() {
+              el.style.opacity = op;
+              el.style.transform = 'translateY(0)';
+            };
+          }(outLine, origOpacity));
+        } else {
+          container.appendChild(outLine);
+          scrollToBottom();
+        }
+
+        await new Promise(function(r) { setTimeout(r, LINE_DELAY); });
+      }
+
+      container.appendChild(createLine('&nbsp;'));
+      scrollToBottom();
+    }
+
+    async function runFeed() {
+      while (true) {
+        await renderItem(feedItems[currentItem]);
+        currentItem = (currentItem + 1) % feedItems.length;
+        await new Promise(function(r) { setTimeout(r, COMMAND_PAUSE); });
+
+        while (container.children.length > 100) {
+          container.removeChild(container.firstChild);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      runFeed();
+
+      // Hover: show/hide copy button
+      var termWin = document.getElementById('terminal-window');
+      var termCopy = document.getElementById('terminal-copy');
+      var termLabel = document.getElementById('terminal-copy-label');
+      if (termWin && termCopy) {
+        termWin.addEventListener('mouseenter', function() {
+          termCopy.style.opacity = '1';
+        });
+        termWin.addEventListener('mouseleave', function() {
+          termCopy.style.opacity = '0';
+        });
+
+        // Click anywhere on terminal to copy install command
+        function copyInstall() {
+          var cmd = 'curl -fsSL https://mandex.dev/install.sh | sh';
+          navigator.clipboard.writeText(cmd).then(function() {
+            if (termLabel) {
+              termLabel.textContent = 'copied!';
+              setTimeout(function() { termLabel.textContent = 'copy install'; }, 1500);
+            }
+          });
+        }
+        termWin.addEventListener('click', copyInstall);
+      }
+    });
+  })();
+</script>
