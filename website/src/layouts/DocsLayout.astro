@@ -1,0 +1,104 @@
+---
+import Layout from './Layout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+const sidebar = [
+  { label: 'Overview', href: '/docs/' },
+  { label: 'Getting Started', href: '/docs/getting-started/' },
+  { type: 'group', label: 'Commands', items: [
+    { label: 'mx pull', href: '/docs/commands/pull/' },
+    { label: 'mx search', href: '/docs/commands/search/' },
+    { label: 'mx sync', href: '/docs/commands/sync/' },
+    { label: 'mx init', href: '/docs/commands/init/' },
+    { label: 'mx show', href: '/docs/commands/show/' },
+    { label: 'mx list', href: '/docs/commands/list/' },
+    { label: 'mx build', href: '/docs/commands/build/' },
+  ]},
+  { label: 'Configuration', href: '/docs/configuration/' },
+  { type: 'group', label: 'Integrations', items: [
+    { label: 'Claude Code', href: '/docs/integrations/claude-code/' },
+    { label: 'Cursor', href: '/docs/integrations/cursor/' },
+    { label: 'Codex', href: '/docs/integrations/codex/' },
+    { label: 'Windsurf', href: '/docs/integrations/windsurf/' },
+  ]},
+  { label: 'For Package Authors', href: '/docs/for-authors/' },
+];
+
+function isActive(href: string) {
+  return currentPath === href || currentPath === href.slice(0, -1);
+}
+---
+
+<Layout title={`${title} — mandex docs`}>
+  <div class="flex-1 flex">
+    <!-- Sidebar -->
+    <aside
+      class="hidden md:flex shrink-0 flex-col border-r py-6 px-5 overflow-y-auto"
+      style="width: 240px; border-color: var(--color-border);"
+    >
+      <a
+        href="/docs/"
+        class="text-[13px] font-mono font-semibold uppercase tracking-wider mb-4 block"
+        style="color: var(--color-text); text-decoration: none;"
+      >Docs</a>
+
+      <nav class="flex flex-col gap-0.5">
+        {sidebar.map((item) =>
+          item.type === 'group' ? (
+            <div class="mt-4 mb-1">
+              <span
+                class="text-[11px] font-mono font-semibold uppercase tracking-wider"
+                style="color: var(--color-text-tertiary);"
+              >{item.label}</span>
+              <div class="flex flex-col gap-0.5 mt-1">
+                {item.items?.map((sub) => (
+                  <a
+                    href={sub.href}
+                    class="text-[13px] font-mono py-1 px-2 transition-colors"
+                    style={isActive(sub.href)
+                      ? `color: var(--color-text); background: var(--color-background-secondary); border-left: 2px solid #059669; padding-left: 6px; text-decoration: none;`
+                      : `color: var(--color-text-secondary); text-decoration: none;`
+                    }
+                  >{sub.label}</a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <a
+              href={item.href}
+              class="text-[13px] font-mono py-1 px-2 transition-colors"
+              style={isActive(item.href)
+                ? `color: var(--color-text); background: var(--color-background-secondary); border-left: 2px solid #059669; padding-left: 6px; text-decoration: none;`
+                : `color: var(--color-text-secondary); text-decoration: none;`
+              }
+            >{item.label}</a>
+          )
+        )}
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <main class="flex-1 min-w-0 py-8 px-6 md:px-10 lg:px-16 overflow-y-auto">
+      <div style="max-width: 720px;">
+        <h1
+          class="text-3xl font-bold tracking-tight mb-2"
+          style="color: var(--color-text);"
+        >{title}</h1>
+        {description && (
+          <p class="text-base mb-6" style="color: var(--color-text-tertiary);">{description}</p>
+        )}
+        <div class="h-px mb-8" style="background: var(--color-border);"></div>
+        <div class="prose">
+          <slot />
+        </div>
+      </div>
+    </main>
+  </div>
+</Layout>

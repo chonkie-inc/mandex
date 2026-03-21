@@ -12,8 +12,7 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/mdx": "^5.0.0",
-    "@astrojs/starlight": "^0.38.2",
+    "@astrojs/mdx": "^5.0.2",
     "@tailwindcss/vite": "^4.2.1",
     "astro": "^6.0.4",
     "marked": "^17.0.5",
