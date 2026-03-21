@@ -151,24 +151,27 @@ const pkgName = Astro.params.name;
         }
       }
 
-      // Use static data if available, otherwise fetch
+      // Show static data immediately if available, then refresh from API
       if (staticPkg && staticPkg.name) {
         if (loadingEl) loadingEl.remove();
         renderPackage(staticPkg);
-      } else {
-        fetch('https://api.mandex.dev/packages/' + pkgName)
-          .then(function(res) {
-            if (!res.ok) throw new Error('Not found');
-            return res.json();
-          })
-          .then(function(data) {
-            if (loadingEl) loadingEl.remove();
-            renderPackage(data);
-          })
-          .catch(function() {
-            if (loadingEl) loadingEl.textContent = 'Package not found.';
-          });
       }
+
+      // Always fetch fresh data from API
+      fetch('https://api.mandex.dev/packages/' + pkgName)
+        .then(function(res) {
+          if (!res.ok) throw new Error('Not found');
+          return res.json();
+        })
+        .then(function(data) {
+          if (loadingEl) loadingEl.remove();
+          renderPackage(data);
+        })
+        .catch(function() {
+          if (!staticPkg || !staticPkg.name) {
+            if (loadingEl) loadingEl.textContent = 'Package not found.';
+          }
+        });
     })();
   </script>
 </Layout>
