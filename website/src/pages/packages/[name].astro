@@ -91,7 +91,13 @@ const pkgName = Astro.params.name;
         if (pkg.description) {
           html += '<p class="text-base leading-relaxed max-w-xl" style="color: var(--color-text-secondary);">' + pkg.description + '</p>';
         }
-        html += '</div></div></div>';
+        html += '</div>';
+        if (pkg.source_url) {
+          html += '<a href="' + pkg.source_url + '" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3 py-1.5 border text-[13px] font-mono transition-colors shrink-0" style="border-color: var(--color-border); color: var(--color-text-secondary); text-decoration: none;">';
+          html += '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+          html += 'Source</a>';
+        }
+        html += '</div></div>';
 
         // Install command
         html += '<div class="shrink-0 px-5 py-4 border-b" style="border-color: var(--color-border);">';

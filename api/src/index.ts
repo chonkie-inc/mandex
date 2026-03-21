@@ -61,7 +61,7 @@ export default {
         const name = packageMatch[1];
 
         const pkg = await env.DB.prepare(
-          "SELECT name, description, ecosystem FROM packages WHERE name = ?1"
+          "SELECT name, description, ecosystem, source_url FROM packages WHERE name = ?1"
         ).bind(name).first();
 
         if (!pkg) {
