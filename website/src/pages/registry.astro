@@ -1,21 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-
-interface Package {
-  name: string;
-  description: string;
-  latest_version: string;
-  size_bytes: number;
-}
-
-const res = await fetch('https://api.mandex.dev/packages');
-const packages: Package[] = await res.json();
-
-function formatSize(bytes: number): string {
-  if (!bytes) return '\u2014';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-}
 ---
 
 <Layout title="mandex — Registry">
@@ -67,66 +51,21 @@ function formatSize(bytes: number): string {
           style="color: var(--color-text-tertiary);"
           id="package-count"
         >
-          {packages.length} packages
+          Loading...
         </span>
       </div>
     </div>
 
-    <!-- Package list -->
-    <div class="flex-1 min-h-0 overflow-y-auto">
-      {packages.map((pkg) => (
-        <a
-          href={`/packages/${pkg.name}`}
-          class="package-row flex items-center justify-between px-5 py-3 border-b transition-colors"
-          style="border-color: var(--color-border); text-decoration: none;"
-          data-name={pkg.name.toLowerCase()}
-          data-description={(pkg.description || '').toLowerCase()}
-          onmouseenter="this.style.backgroundColor='var(--color-background-secondary)'"
-          onmouseleave="this.style.backgroundColor=''"
-        >
-          <div class="flex flex-col min-w-0 mr-4">
-            <span
-              class="font-mono text-[13px] font-semibold"
-              style="color: var(--color-text);"
-            >
-              {pkg.name}
-            </span>
-            {pkg.description && (
-              <span
-                class="text-[12px] mt-0.5 truncate"
-                style="color: var(--color-text-tertiary);"
-              >
-                {pkg.description}
-              </span>
-            )}
-          </div>
-          <div class="flex flex-col items-end shrink-0">
-            <span
-              class="font-mono text-[12px]"
-              style="color: var(--color-text-secondary);"
-            >
-              {pkg.latest_version}
-            </span>
-            <span
-              class="font-mono text-[11px] mt-0.5"
-              style="color: var(--color-text-tertiary);"
-            >
-              {formatSize(pkg.size_bytes)}
-            </span>
-          </div>
-        </a>
-      ))}
+    <!-- Package list (populated client-side) -->
+    <div class="flex-1 min-h-0 overflow-y-auto" id="package-list">
+      <div
+        class="px-5 py-8 text-center font-mono text-sm"
+        style="color: var(--color-text-tertiary);"
+        id="loading-msg"
+      >
+        Loading packages...
+      </div>
 
-      {packages.length === 0 && (
-        <div
-          class="px-5 py-8 text-center font-mono text-sm"
-          style="color: var(--color-text-tertiary);"
-        >
-          No packages found.
-        </div>
-      )}
-
-      <!-- No results message (hidden by default) -->
       <div
         id="no-results"
         class="px-5 py-8 text-center font-mono text-sm"
@@ -139,30 +78,78 @@ function formatSize(bytes: number): string {
 
   <script is:inline>
     (function() {
-      var input = document.getElementById('search-input');
-      var rows = document.querySelectorAll('.package-row');
+      var listEl = document.getElementById('package-list');
       var countEl = document.getElementById('package-count');
+      var loadingEl = document.getElementById('loading-msg');
       var noResults = document.getElementById('no-results');
-      var total = rows.length;
+      var input = document.getElementById('search-input');
+      var packages = [];
 
-      input.addEventListener('input', function() {
-        var query = input.value.toLowerCase().trim();
+      function formatSize(bytes) {
+        if (!bytes) return '\u2014';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+      }
+
+      function renderPackages(filter) {
+        var query = (filter || '').toLowerCase().trim();
+        // Remove existing rows
+        var rows = listEl.querySelectorAll('.package-row');
+        rows.forEach(function(r) { r.remove(); });
+
         var visible = 0;
+        var fragment = document.createDocumentFragment();
 
-        rows.forEach(function(row) {
-          var name = row.getAttribute('data-name') || '';
-          var desc = row.getAttribute('data-description') || '';
-          var match = !query || name.indexOf(query) !== -1 || desc.indexOf(query) !== -1;
-          row.style.display = match ? '' : 'none';
-          if (match) visible++;
+        packages.forEach(function(pkg) {
+          var name = (pkg.name || '').toLowerCase();
+          var desc = (pkg.description || '').toLowerCase();
+          if (query && name.indexOf(query) === -1 && desc.indexOf(query) === -1) return;
+
+          var a = document.createElement('a');
+          a.href = '/packages/' + pkg.name;
+          a.className = 'package-row flex items-center justify-between px-5 py-3 border-b transition-colors';
+          a.style.borderColor = 'var(--color-border)';
+          a.style.textDecoration = 'none';
+          a.addEventListener('mouseenter', function() { this.style.backgroundColor = 'var(--color-background-secondary)'; });
+          a.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+
+          a.innerHTML =
+            '<div class="flex flex-col min-w-0 mr-4">' +
+              '<span class="font-mono text-[13px] font-semibold" style="color: var(--color-text);">' + pkg.name + '</span>' +
+              (pkg.description ? '<span class="text-[12px] mt-0.5 truncate" style="color: var(--color-text-tertiary);">' + pkg.description + '</span>' : '') +
+            '</div>' +
+            '<div class="flex flex-col items-end shrink-0">' +
+              '<span class="font-mono text-[12px]" style="color: var(--color-text-secondary);">' + pkg.latest_version + '</span>' +
+              '<span class="font-mono text-[11px] mt-0.5" style="color: var(--color-text-tertiary);">' + formatSize(pkg.size_bytes) + '</span>' +
+            '</div>';
+
+          fragment.appendChild(a);
+          visible++;
         });
 
-        if (countEl) {
-          countEl.textContent = visible + ' package' + (visible !== 1 ? 's' : '');
-        }
-        if (noResults) {
-          noResults.style.display = visible === 0 ? '' : 'none';
-        }
+        // Insert before no-results element
+        listEl.insertBefore(fragment, noResults);
+
+        if (countEl) countEl.textContent = visible + ' package' + (visible !== 1 ? 's' : '');
+        if (noResults) noResults.style.display = visible === 0 ? '' : 'none';
+      }
+
+      // Fetch packages from API
+      fetch('https://api.mandex.dev/packages')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          packages = data;
+          if (loadingEl) loadingEl.remove();
+          renderPackages('');
+        })
+        .catch(function() {
+          if (loadingEl) loadingEl.textContent = 'Failed to load packages.';
+          if (countEl) countEl.textContent = '0 packages';
+        });
+
+      // Search filter
+      input.addEventListener('input', function() {
+        renderPackages(input.value);
       });
     })();
   </script>

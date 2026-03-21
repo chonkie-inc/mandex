@@ -37,12 +37,19 @@ const { title, description = "Documentation packages for AI agents. Local, versi
           <span class="text-xl font-light tracking-wide" style="color: var(--color-text);">mandex</span>
         </a>
 
-        <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-4">
+        <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-4">
           <a href="/about" class="text-[13px] font-mono font-medium uppercase tracking-widest transition-opacity hover:opacity-70" style="color: var(--color-text-tertiary); text-decoration: none;">About</a>
           <span class="text-[11px]" style="color: var(--color-text-tertiary);">&middot;</span>
           <a href="/docs/" class="text-[13px] font-mono font-medium uppercase tracking-widest transition-opacity hover:opacity-70" style="color: var(--color-text-tertiary); text-decoration: none;">Docs</a>
           <span class="text-[11px]" style="color: var(--color-text-tertiary);">&middot;</span>
           <a href="/registry" class="text-[13px] font-mono font-medium uppercase tracking-widest transition-opacity hover:opacity-70" style="color: var(--color-text-tertiary); text-decoration: none;">Registry</a>
+        </div>
+
+        <!-- Mobile nav links -->
+        <div class="flex md:hidden items-center gap-3">
+          <a href="/about" class="text-[11px] font-mono font-medium uppercase tracking-wider transition-opacity hover:opacity-70" style="color: var(--color-text-tertiary); text-decoration: none;">About</a>
+          <a href="/docs/" class="text-[11px] font-mono font-medium uppercase tracking-wider transition-opacity hover:opacity-70" style="color: var(--color-text-tertiary); text-decoration: none;">Docs</a>
+          <a href="/registry" class="text-[11px] font-mono font-medium uppercase tracking-wider transition-opacity hover:opacity-70" style="color: var(--color-text-tertiary); text-decoration: none;">Registry</a>
         </div>
 
         <div class="flex items-center gap-2">
