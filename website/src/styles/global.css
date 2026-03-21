@@ -57,7 +57,7 @@ body {
   font-family: 'Geist', system-ui, -apple-system, sans-serif;
   background-color: var(--color-background);
   color: var(--color-text);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 code, pre, .font-mono {

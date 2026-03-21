@@ -1,20 +1,21 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import TerminalDemo from '../components/TerminalDemo.astro';
 
 interface Package {
   name: string;
   description: string;
   latest_version: string;
   size_bytes: number;
+  entry_count: number;
+  version_count: number;
 }
 
 let packages: Package[] = [];
 try {
   const res = await fetch('https://api.mandex.dev/packages');
   packages = await res.json();
-} catch (e) {
-  // fallback if API is down
-}
+} catch (e) {}
 
 function formatSize(bytes: number): string {
   if (!bytes) return '—';
@@ -22,117 +23,376 @@ function formatSize(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
-// Build 8x5 grid; center 4x3 hole at cols 2-5, rows 1-3
-// Row 0: 8 cells, Rows 1-3: 2 left + hole + 2 right, Row 4: 8 cells = 28 cells
-const COLS = 8;
-const ROWS = 5;
-const HOLE_COL_START = 2;
-const HOLE_COL_END = 6;
-const HOLE_ROW_START = 1;
-const HOLE_ROW_END = 4;
+// Total versions across all packages
+const totalVersions = packages.reduce((sum, p) => sum + (p.version_count || 1), 0);
 
-interface Cell {
-  row: number;
-  col: number;
-  isHole: boolean;
-  pkg: Package | null;
-}
-
-const cells: Cell[] = [];
-let pkgIndex = 0;
-for (let r = 0; r < ROWS; r++) {
-  for (let c = 0; c < COLS; c++) {
-    const isHole = c >= HOLE_COL_START && c < HOLE_COL_END && r >= HOLE_ROW_START && r < HOLE_ROW_END;
-    let pkg: Package | null = null;
-    if (!isHole && packages.length > 0) {
-      pkg = packages[pkgIndex % packages.length];
-      pkgIndex++;
-    }
-    cells.push({ row: r, col: c, isHole, pkg });
-  }
+// Fill 4x5 = 20 cells, repeating if needed
+const gridPackages: Package[] = [];
+for (let i = 0; i < 20; i++) {
+  gridPackages.push(packages[i % packages.length]);
 }
 ---
 
 <Layout title="mandex — documentation packages for AI agents">
-  <div class="flex-1 flex flex-col min-h-0">
-    <div class="flex-1 relative min-h-0 overflow-hidden">
-      <!-- Grid of package cells -->
-      <div
-        class="absolute inset-x-0"
-        style={`display: grid; grid-template-columns: repeat(${COLS}, 1fr); grid-template-rows: repeat(${ROWS}, calc((100vw - 96px) / 8)); top: 50%; transform: translateY(-50%);`}
-      >
-        {cells.map((cell) => (
-          cell.isHole ? (
-            <div></div>
-          ) : (
-            <a
-              href={`/packages/${cell.pkg?.name}`}
-              class="pkg-cell border flex flex-col items-center justify-center gap-1"
-              style="border-color: var(--color-border); text-decoration: none;"
-            >
-              <span class="text-[13px] font-mono font-semibold" style="color: var(--color-text);">
-                {cell.pkg?.name}
-              </span>
-              <span class="text-[11px] font-mono" style="color: var(--color-text-tertiary);">
-                v{cell.pkg?.latest_version}
-              </span>
-              <span class="text-[10px] font-mono" style="color: var(--color-text-tertiary);">
-                {cell.pkg ? formatSize(cell.pkg.size_bytes) : ''}
-              </span>
-            </a>
-          )
-        ))}
-      </div>
+  <!-- Single container with continuous left/right border lines -->
+  <div class="flex-1 flex justify-center px-6 md:px-10 lg:px-16 pt-8 md:pt-14">
+    <div
+      class="relative w-full flex flex-col"
+      style="max-width: 1400px; border-left: 1px solid var(--color-border); border-right: 1px solid var(--color-border);"
+    >
+      <!-- Top border line -->
+      <div style="border-top: 1px solid var(--color-border);"></div>
 
-      <!-- Hero box centered on top -->
-      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div
-          class="border flex flex-col gap-5 px-10 py-8 pointer-events-auto"
-          style="border-color: var(--color-border); max-width: 600px; width: 100%; background-color: var(--color-background);"
-        >
-          <h1
-            class="text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]"
-            style="color: var(--color-text);"
+      <!-- Corner crosshairs -->
+      <svg class="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <line x1="12" y1="4" x2="12" y2="20" stroke="var(--color-text-tertiary)" stroke-width="1"/>
+        <line x1="4" y1="12" x2="20" y2="12" stroke="var(--color-text-tertiary)" stroke-width="1"/>
+      </svg>
+      <svg class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <line x1="12" y1="4" x2="12" y2="20" stroke="var(--color-text-tertiary)" stroke-width="1"/>
+        <line x1="4" y1="12" x2="20" y2="12" stroke="var(--color-text-tertiary)" stroke-width="1"/>
+      </svg>
+
+      <!-- Hero + Terminal area -->
+      <div class="flex items-center justify-center px-6 md:px-10 lg:px-16 py-6 md:py-8" style="min-height: 70vh;">
+        <div class="flex flex-col md:flex-row gap-4 w-full" style="max-width: 1200px;">
+          <!-- Hero -->
+          <div
+            class="md:basis-[45%] border flex flex-col justify-between gap-4 px-8 py-6 md:px-10 md:py-8"
+            style="border-color: var(--color-border); background-color: var(--color-background);"
           >
-            The <span style="color: #059669;">fastest</span> way for agents to get <span style="color: #059669;">docs</span>.
-          </h1>
-          <div class="h-px" style="background-color: var(--color-border);"></div>
-          <p
-            class="text-base md:text-lg leading-relaxed"
-            style="color: var(--color-text-secondary);"
+            <h1
+              class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]"
+              style="color: var(--color-text);"
+            >
+              The <span style="color: #059669;">fastest</span> way for agents to get <span style="color: #059669;">docs</span>.
+            </h1>
+            <div class="flex flex-wrap items-center gap-3">
+              <button
+                id="hero-copy"
+                class="group flex items-center gap-2.5 px-4 py-2 border text-sm font-medium transition-colors cursor-pointer"
+                style="background-color: #059669; color: white; border-color: #059669;"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                </svg>
+                <span class="text-[13px]">Copy install command</span>
+              </button>
+              <a
+                href="https://github.com/chonkie-inc/mandex"
+                target="_blank"
+                rel="noopener"
+                class="flex items-center gap-2 px-4 py-2 border text-sm font-medium transition-colors"
+                style="border-color: var(--color-border); color: var(--color-text-secondary);"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                View on GitHub
+              </a>
+            </div>
+          </div>
+
+          <!-- Terminal Demo -->
+          <div
+            class="md:basis-[55%] overflow-hidden"
+            style="height: 520px;"
           >
-            mandex pulls documentation as local docs indexes —
-            one download gives you instant search, exact version
-            pinning, and unlimited offline queries. No rate
-            limits, no latency, no API keys.
-          </p>
-          <div class="h-px" style="background-color: var(--color-border);"></div>
-          <div class="flex flex-wrap items-center gap-3">
-            <button
-              id="hero-copy"
-              class="group flex items-center gap-2.5 px-4 py-2 border text-sm font-medium transition-colors cursor-pointer"
-              style="background-color: #059669; color: white; border-color: #059669;"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-              </svg>
-              <span class="text-[13px]">Copy install command</span>
-            </button>
-            <a
-              href="https://github.com/bhavnicksm/mandex"
-              target="_blank"
-              rel="noopener"
-              class="flex items-center gap-2 px-4 py-2 border text-sm font-medium transition-colors"
-              style="border-color: var(--color-border); color: var(--color-text-secondary);"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-              </svg>
-              View on GitHub
-            </a>
+            <TerminalDemo />
           </div>
         </div>
       </div>
+
+      <!-- Horizontal rule connecting rails -->
+      <div style="border-top: 1px solid var(--color-border);"></div>
+
+      <!-- Big subtitle section -->
+      <div class="px-6 md:px-10 lg:px-16 py-10 md:py-14">
+        <p
+          class="text-xl md:text-2xl lg:text-3xl leading-relaxed"
+          style="color: var(--color-text-secondary); max-width: 1200px; margin: 0 auto;"
+        >
+          mandex pulls documentation as local docs indexes — one download gives you instant search, exact version pinning, and unlimited offline queries. <span style="color: var(--color-text);">No rate limits, no latency, no API keys.</span>
+        </p>
+      </div>
+
+      <!-- Horizontal rule connecting rails -->
+      <div style="border-top: 1px solid var(--color-border);"></div>
+
+      <!-- Integrates with section (inside the same vertical rails) -->
+      <div class="pt-6">
+        <!-- Divider with label -->
+        <div class="relative flex items-center mb-6">
+          <div class="flex-1 h-px" style="background-color: var(--color-border);"></div>
+          <span
+            class="pl-4 pr-1 text-[13px] font-mono"
+            style="color: var(--color-text-tertiary);"
+          >integrates with</span>
+        </div>
+
+        <!-- Logo marquee -->
+        <div class="relative overflow-hidden" style="height: 80px;">
+          <div class="absolute inset-y-0 left-0 w-20 z-10 pointer-events-none" style="background: linear-gradient(to right, var(--color-background), transparent);"></div>
+          <div class="absolute inset-y-0 right-0 w-20 z-10 pointer-events-none" style="background: linear-gradient(to left, var(--color-background), transparent);"></div>
+
+          <div class="flex items-center gap-14 h-full marquee-track">
+            <div class="flex items-center gap-14 shrink-0">
+              <img src="/agents/claude.svg" alt="Claude" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/cursor.svg" alt="Cursor" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/windsurf.svg" alt="Windsurf" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/codex.svg" alt="Codex" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/copilot.svg" alt="Copilot" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/gemini.svg" alt="Gemini" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/cline.svg" alt="Cline" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/openclaw.svg" alt="OpenClaw" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/amp.svg" alt="Amp" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/antigravity.svg" alt="Antigravity" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+              <img src="/agents/clawdbot.svg" alt="Clawdbot" class="h-16 opacity-40 hover:opacity-80 transition-opacity agent-logo" />
+            </div>
+            <div class="flex items-center gap-14 shrink-0" aria-hidden="true">
+              <img src="/agents/claude.svg" alt="Claude" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/cursor.svg" alt="Cursor" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/windsurf.svg" alt="Windsurf" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/codex.svg" alt="Codex" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/copilot.svg" alt="Copilot" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/gemini.svg" alt="Gemini" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/cline.svg" alt="Cline" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/openclaw.svg" alt="OpenClaw" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/amp.svg" alt="Amp" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/antigravity.svg" alt="Antigravity" class="h-16 opacity-40 agent-logo" />
+              <img src="/agents/clawdbot.svg" alt="Clawdbot" class="h-16 opacity-40 agent-logo" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom divider -->
+        <div class="mt-3 h-px" style="background-color: var(--color-border);"></div>
+      </div>
+
+      <!-- Features section -->
+      <div class="px-6 md:px-10 lg:px-16 py-16">
+        <p
+          class="text-center text-2xl md:text-3xl font-bold tracking-tight mb-12"
+          style="color: var(--color-text);"
+        >
+          Documentation as packages.<br/>
+          <span style="color: var(--color-text-tertiary);">Local, versioned, instant.</span>
+        </p>
+
+        <!-- Feature grid — Vercel-style with hero cell -->
+        <div class="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-3 mx-auto" style="max-width: 1200px;">
+          <!-- Hero cell (spans 2 rows on left) -->
+          <div
+            class="md:row-span-2 flex flex-col justify-between p-8 md:p-10 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 280px;"
+          >
+            <div>
+              <h3 class="text-2xl md:text-3xl font-bold tracking-tight mb-3" style="color: var(--color-text);">
+                Built for agents,<br/>not humans.
+              </h3>
+              <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary);">
+                mandex packages are structured for machine consumption — indexed, chunked, and ranked for LLM retrieval.
+              </p>
+            </div>
+            <div class="mt-6 font-mono text-[12px] leading-relaxed" style="color: var(--color-text-tertiary);">
+              <div>$ mx search react "useEffect cleanup"</div>
+              <div style="color: #059669;">✓ 3 results (2ms)</div>
+            </div>
+          </div>
+
+          <!-- Top-right cards -->
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 200px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Local-first</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                Docs live on disk. No network after install — search is instant, works offline.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[20px]" style="color: var(--color-text-tertiary);">⚡</div>
+          </div>
+
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 200px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Version-pinned</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                Every package is tied to an exact version. No stale docs, no mismatched APIs.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[20px]" style="color: var(--color-text-tertiary);">📌</div>
+          </div>
+
+          <!-- Bottom-right cards -->
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 200px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Reranked search</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                FTS5 + ONNX cross-encoder. Results scored by relevance, not just keywords.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[12px] px-2 py-1 inline-block self-start" style="color: var(--color-text-tertiary); background: var(--color-background-secondary); border: 1px solid var(--color-border);">--rerank</div>
+          </div>
+
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 200px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Free forever</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                No API keys, no rate limits. Pull once, query forever.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[20px]" style="color: var(--color-text-tertiary);">∞</div>
+          </div>
+        </div>
+
+        <!-- Second row — full width cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mx-auto mt-3" style="max-width: 1200px;">
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 180px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">Multi-agent</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                Works with Claude Code, Cursor, Codex, Windsurf — any tool that can run shell commands.
+              </p>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Claude</span>
+              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Cursor</span>
+              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Codex</span>
+              <span class="text-[11px] font-mono px-2 py-0.5" style="border: 1px solid var(--color-border); color: var(--color-text-tertiary);">Windsurf</span>
+            </div>
+          </div>
+
+          <div
+            class="flex flex-col justify-between p-6 md:p-8 border transition-colors hover:bg-[var(--color-background-secondary)]"
+            style="border-color: var(--color-border); min-height: 180px;"
+          >
+            <div>
+              <h3 class="text-base font-semibold mb-2" style="color: var(--color-text);">One command</h3>
+              <p class="text-[13px] leading-relaxed" style="color: var(--color-text-secondary);">
+                Reads package.json, requirements.txt, Cargo.toml — pulls docs for every dependency automatically.
+              </p>
+            </div>
+            <div class="mt-4 font-mono text-[13px] px-3 py-2" style="background: var(--color-background-secondary); border: 1px solid var(--color-border); color: var(--color-text-secondary);">
+              $ mx sync
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registry section -->
+      <div style="border-top: 1px solid var(--color-border);"></div>
+
+      <div class="py-16 px-6 md:px-10 lg:px-16">
+        <div class="mx-auto" style="max-width: 1200px;">
+        <p
+          class="text-center text-2xl md:text-3xl font-bold tracking-tight mb-2"
+          style="color: var(--color-text);"
+        >
+          Supports <span style="color: #059669;" id="pkg-count">{totalVersions.toLocaleString()}</span> package versions
+        </p>
+        <p
+          class="text-center text-sm mb-12"
+          style="color: var(--color-text-tertiary);"
+        >
+          and growing — <a href="/registry" style="text-decoration: underline;">view all</a>
+        </p>
+
+        <!-- Desktop: 5x4 square grid -->
+        <div class="hidden md:grid grid-cols-5" style="border: 1px solid var(--color-border);">
+          {gridPackages.map((pkg, i) => (
+            <a
+              href={`/packages/${pkg.name}`}
+              class="flex flex-col items-center justify-center gap-1.5 transition-colors hover:bg-[var(--color-background-secondary)] border"
+              style="text-decoration: none; aspect-ratio: 1; border-color: var(--color-border); margin: -0.5px;"
+            >
+              <span class="text-[14px] font-mono font-semibold" style="color: var(--color-text);">
+                {pkg.name}
+              </span>
+              <span class="text-[11px] font-mono" style="color: var(--color-text-tertiary);">
+                v{pkg.latest_version}
+              </span>
+              <span class="text-[10px] font-mono" style="color: var(--color-text-tertiary);">
+                {formatSize(pkg.size_bytes)}
+              </span>
+            </a>
+          ))}
+        </div>
+
+        <!-- Mobile: simple list -->
+        <div class="md:hidden border" style="border-color: var(--color-border);">
+          {packages.map((pkg) => (
+            <a
+              href={`/packages/${pkg.name}`}
+              class="flex items-center justify-between px-4 py-3 border-b transition-colors hover:bg-[var(--color-background-secondary)]"
+              style="text-decoration: none; border-color: var(--color-border);"
+            >
+              <span class="text-[14px] font-mono font-semibold" style="color: var(--color-text);">
+                {pkg.name}
+              </span>
+              <span class="text-[11px] font-mono" style="color: var(--color-text-tertiary);">
+                v{pkg.latest_version} · {formatSize(pkg.size_bytes)}
+              </span>
+            </a>
+          ))}
+        </div>
+        </div>
+      </div>
+
+      <!-- Bottom border -->
+      <div style="border-top: 1px solid var(--color-border);"></div>
+
+      <!-- Footer -->
+      <footer class="px-6 md:px-10 lg:px-16 py-10">
+        <div class="flex flex-col md:flex-row justify-between gap-8 mx-auto" style="max-width: 1200px;">
+          <!-- Left: branding -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <img src="/logo-black.png" alt="mandex" class="h-5 dark-hidden" />
+              <img src="/logo-white.png" alt="mandex" class="h-5 light-hidden" />
+              <span class="text-base font-light tracking-wide" style="color: var(--color-text);">mandex</span>
+            </div>
+            <p class="text-[12px] font-mono" style="color: var(--color-text-tertiary);">
+              Documentation packages for AI agents.
+            </p>
+            <p class="text-[11px] font-mono mt-2" style="color: var(--color-text-tertiary);">
+              &copy; <a href="https://chonkie.ai" target="_blank" rel="noopener" style="text-decoration: underline;">Chonkie, Inc.</a>
+            </p>
+          </div>
+
+          <!-- Right: link columns -->
+          <div class="flex gap-16">
+            <div class="flex flex-col gap-2">
+              <span class="text-[11px] font-mono font-semibold uppercase tracking-wider mb-1" style="color: var(--color-text-tertiary);">Product</span>
+              <a href="/registry" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">Registry</a>
+              <a href="/about" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">About</a>
+              <a href="https://docs.mandex.dev" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">Docs</a>
+            </div>
+            <div class="flex flex-col gap-2">
+              <span class="text-[11px] font-mono font-semibold uppercase tracking-wider mb-1" style="color: var(--color-text-tertiary);">Community</span>
+              <a href="https://github.com/chonkie-inc/mandex" target="_blank" rel="noopener" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">GitHub</a>
+              <a href="https://discord.gg/vH3SkRqmUz" target="_blank" rel="noopener" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">Discord</a>
+            </div>
+            <div class="flex flex-col gap-2">
+              <span class="text-[11px] font-mono font-semibold uppercase tracking-wider mb-1" style="color: var(--color-text-tertiary);">Install</span>
+              <a href="https://crates.io/crates/mandex" target="_blank" rel="noopener" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">crates.io</a>
+              <a href="https://github.com/chonkie-inc/mandex/releases" target="_blank" rel="noopener" class="text-[13px] font-mono transition-opacity hover:opacity-70" style="color: var(--color-text-secondary); text-decoration: none;">Releases</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   </div>
 
@@ -147,6 +407,26 @@ for (let r = 0; r < ROWS; r++) {
     <img src="/chonkie-icon.png" alt="chonkie" class="h-14 object-contain" style="animation: spin 20s linear infinite;" />
   </a>
 
+  <style>
+    .marquee-track {
+      animation: marquee-scroll 30s linear infinite;
+    }
+    @keyframes marquee-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    /* SVG logos are light-colored (for dark bg), invert on light theme */
+    [data-theme="light"] .agent-logo,
+    :root:not([data-theme="dark"]) .agent-logo {
+      filter: invert(1);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .agent-logo {
+        filter: none;
+      }
+    }
+  </style>
+
   <script is:inline>
     document.getElementById('hero-copy')?.addEventListener('click', function() {
       var cmd = 'curl -fsSL https://mandex.dev/install.sh | sh';
@@ -159,6 +439,5 @@ for (let r = 0; r < ROWS; r++) {
         }, 1500);
       });
     });
-
   </script>
 </Layout>
