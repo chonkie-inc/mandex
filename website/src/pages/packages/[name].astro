@@ -75,15 +75,7 @@ const pkgName = Astro.params.name;
           return;
         }
 
-        var versions = (pkg.versions || []).sort(function(a, b) {
-          var ap = a.version.split('.').map(Number);
-          var bp = b.version.split('.').map(Number);
-          for (var i = 0; i < Math.max(ap.length, bp.length); i++) {
-            var diff = (bp[i] || 0) - (ap[i] || 0);
-            if (diff !== 0) return diff;
-          }
-          return 0;
-        });
+        var versions = pkg.versions || [];
         var latest = versions.length > 0 ? versions[0].version : null;
 
         var html = '';

@@ -32,7 +32,7 @@ export default {
           LEFT JOIN versions v ON v.package = p.name
             AND v.rowid = (
               SELECT v2.rowid FROM versions v2 WHERE v2.package = p.name
-              ORDER BY v2.published_at DESC LIMIT 1
+              ORDER BY v2.sort_key DESC LIMIT 1
             )
           WHERE 1=1
         `;
@@ -72,7 +72,7 @@ export default {
         }
 
         const versions = await env.DB.prepare(
-          "SELECT version, entry_count, size_bytes, published_at FROM versions WHERE package = ?1 ORDER BY published_at DESC"
+          "SELECT version, entry_count, size_bytes, published_at FROM versions WHERE package = ?1 ORDER BY sort_key DESC"
         ).bind(name).all();
 
         return Response.json({
@@ -87,7 +87,7 @@ export default {
         const name = latestMatch[1];
 
         const version = await env.DB.prepare(
-          "SELECT version FROM versions WHERE package = ?1 ORDER BY published_at DESC LIMIT 1"
+          "SELECT version FROM versions WHERE package = ?1 ORDER BY sort_key DESC LIMIT 1"
         ).bind(name).first();
 
         if (!version) {
