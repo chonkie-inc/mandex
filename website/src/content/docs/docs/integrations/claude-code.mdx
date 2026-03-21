@@ -1,0 +1,28 @@
+---
+title: Claude Code
+description: mandex integration for Claude Code
+---
+
+## How it works
+
+mandex installs a skill file to `~/.claude/skills/mandex/SKILL.md` that teaches Claude Code to use `mx search` before writing code that involves external libraries.
+
+## Setup
+
+Automatically detected and installed during `mx init`:
+
+```bash
+mx init
+```
+
+Or install manually by creating `~/.claude/skills/mandex/SKILL.md` with instructions to run `mx search <package> "<query>"` when looking up library usage.
+
+## What it does
+
+When Claude Code encounters a task involving an installed package, the skill instructs it to:
+
+1. Run `mx search <package> "<query>"` to find relevant documentation
+2. Use the returned snippets as context for generating code
+3. Reference specific API details instead of relying on training data
+
+This gives Claude Code access to version-pinned, accurate documentation without network requests during the conversation.

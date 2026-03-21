@@ -1,0 +1,51 @@
+---
+title: mx init
+description: Set up AI coding tool integrations
+---
+
+## Usage
+
+```bash
+mx init [--yes]
+```
+
+Detects installed AI coding tools and configures them to use mandex for documentation lookups. Creates the config file at `~/.mandex/config.toml`.
+
+## Flags
+
+| Flag | Description |
+|---|---|
+| `--yes` | Accept all defaults without prompting |
+
+## What it does
+
+1. **Detects AI tools** — scans for Claude Code, Cursor, Codex, and Windsurf
+2. **Installs integrations** — writes rules/skills to each tool's config location
+3. **Offers reranker setup** — downloads a ~19MB ONNX model for neural reranking of search results
+4. **Creates config** — writes `~/.mandex/config.toml` with default settings
+
+## Example
+
+```
+$ mx init
+
+  ◇  Detected tools ──────────
+  │  ● Claude Code
+  │  ● Cursor
+
+  ◇  Installing ──────────────
+  │  ✓ Claude Code
+  │  ✓ Cursor
+  │  ✓ Reranker enabled
+  │  ✓ Model ready
+
+  └  Done.
+```
+
+## Non-interactive mode
+
+Use `--yes` in scripts or CI to skip all prompts:
+
+```bash
+mx init --yes
+```

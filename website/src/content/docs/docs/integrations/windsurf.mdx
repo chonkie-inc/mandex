@@ -1,0 +1,20 @@
+---
+title: Windsurf
+description: mandex integration for Windsurf
+---
+
+## How it works
+
+mandex appends usage instructions to `~/.windsurfrules`, teaching Windsurf to use `mx search` for documentation lookups.
+
+## Setup
+
+Automatically detected and installed during `mx init`:
+
+```bash
+mx init
+```
+
+## What it does
+
+The appended rules instruct Windsurf to run `mx search` when it needs library documentation, providing accurate, version-pinned docs from locally cached packages.

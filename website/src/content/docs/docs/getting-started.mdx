@@ -1,0 +1,62 @@
+---
+title: Getting Started
+description: Install mandex and start searching docs in under a minute
+---
+
+## Install
+
+```bash
+curl -fsSL https://mandex.dev/install.sh | sh
+```
+
+This downloads the `mx` binary to `~/.local/bin`, sets up your PATH, and runs `mx init` to configure AI tool integrations.
+
+## Setup
+
+`mx init` auto-detects which AI coding tools you have installed and offers to configure them:
+
+```
+$ mx init
+
+  ███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗██╗  ██╗
+  ...
+
+  ◇  Detected tools ──────────
+  │  ● Claude Code
+  │  ● Cursor
+  │  ● Codex
+
+  ◇  Installing ──────────────
+  │  ✓ Claude Code
+  │  ✓ Cursor
+  │  ✓ Codex
+  │  ✓ Reranker enabled
+  │  ✓ Model ready
+
+  └  Done.
+```
+
+## First search
+
+Pull a package and search it:
+
+```bash
+mx pull fastapi@0.115.0
+mx search fastapi "dependency injection"
+```
+
+## Sync project dependencies
+
+In any project directory, run:
+
+```bash
+mx sync
+```
+
+This reads `package.json`, `requirements.txt`, `Cargo.toml`, and other dependency files, then pulls docs for every detected dependency.
+
+## What's next
+
+- [Commands reference](/docs/commands/pull) — all available commands
+- [Configuration](/docs/configuration) — customize search, reranker, and display settings
+- [Integrations](/docs/integrations/claude-code) — set up your AI coding tools

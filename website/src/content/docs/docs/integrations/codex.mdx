@@ -1,0 +1,20 @@
+---
+title: Codex
+description: mandex integration for OpenAI Codex
+---
+
+## How it works
+
+mandex appends documentation lookup instructions to `~/.codex/AGENTS.md`, teaching Codex to use `mx search` when it needs library documentation.
+
+## Setup
+
+Automatically detected and installed during `mx init`:
+
+```bash
+mx init
+```
+
+## What it does
+
+The appended instructions tell Codex to run `mx search` before generating code that uses external libraries, giving it access to accurate, locally-cached documentation.

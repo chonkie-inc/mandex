@@ -1,0 +1,38 @@
+---
+title: mx pull
+description: Download a documentation package from the registry
+---
+
+## Usage
+
+```bash
+mx pull <package>[@version]
+```
+
+Downloads a documentation package and installs it to `~/.mandex/cache/`.
+
+If no version is specified, the latest version is fetched from the registry.
+
+## Examples
+
+```bash
+# Pull a specific version
+mx pull fastapi@0.115.0
+
+# Pull the latest version
+mx pull react
+```
+
+## Output
+
+```
+$ mx pull fastapi@0.115.0
+  ↓ fastapi@0.115.0  ████████████████████ 100%  2.1 MB
+  ✓ Installed to ~/.mandex/cache/fastapi/0.115.0
+```
+
+## Notes
+
+- Packages are zstd-compressed SQLite databases with FTS5 indexes
+- Re-pulling the same version is a no-op
+- The registry is at `https://registry.mandex.dev` by default (configurable via `[network]` in config)

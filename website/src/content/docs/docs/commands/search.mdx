@@ -1,0 +1,52 @@
+---
+title: mx search
+description: Search installed documentation packages
+---
+
+## Usage
+
+```bash
+mx search [package] "<query>"
+```
+
+Search within a specific package or across all installed packages.
+
+## Flags
+
+| Flag | Description |
+|---|---|
+| `-n <number>` | Limit number of results (default: from config) |
+| `--rerank` | Enable neural reranking (default if reranker is set up) |
+| `--no-rerank` | Disable neural reranking |
+| `--rerank-candidates <number>` | Number of FTS candidates to rerank |
+
+## Examples
+
+```bash
+# Search within a package
+mx search fastapi "dependency injection"
+
+# Search across all installed packages
+mx search "rate limiting"
+
+# Limit results
+mx search -n 3 react "server components"
+
+# Disable reranking for faster results
+mx search --no-rerank fastapi "middleware"
+```
+
+## Output
+
+```
+$ mx search fastapi "dependency injection"
+
+  fastapi@0.115.0 — Dependencies
+  ...FastAPI provides a powerful dependency injection system. You can declare
+  dependencies in your path operation functions...
+
+  fastapi@0.115.0 — Advanced Dependencies
+  ...You can create parameterized dependencies using classes with __call__...
+```
+
+Each result shows the package@version, entry name, and a content snippet with the matching text.

@@ -1,0 +1,53 @@
+---
+title: For Authors
+description: Create and publish mandex documentation packages
+---
+
+## Overview
+
+A mandex package is a zstd-compressed SQLite database containing chunked documentation with an FTS5 full-text search index. Anyone can build one from a directory of Markdown files.
+
+## 1. Prepare your docs
+
+Organize your documentation as `.md` or `.mdx` files in a directory. Each file becomes one or more searchable entries after chunking.
+
+```
+docs/
+  getting-started.md
+  api-reference.md
+  guides/
+    authentication.md
+    deployment.md
+```
+
+## 2. Build the package
+
+```bash
+mx build ./docs --name mylib --version 1.0.0
+```
+
+This produces `mylib-1.0.0.mandex` — a compressed SQLite database ready for distribution.
+
+## 3. Test locally
+
+Install and search your package to verify the results:
+
+```bash
+mx pull ./mylib-1.0.0.mandex
+mx search mylib "authentication"
+```
+
+## 4. Publish
+
+To add your package to the mandex registry, open a pull request at [github.com/mandexdev/registry](https://github.com/mandexdev/registry) or reach out at [mandex.dev](https://mandex.dev).
+
+## Package format
+
+| Property | Detail |
+|---|---|
+| Format | SQLite 3 database |
+| Search | FTS5 full-text search index |
+| Compression | zstd |
+| Extension | `.mandex` |
+
+The `mx build` command handles all of this automatically — you only need to provide the Markdown source files.

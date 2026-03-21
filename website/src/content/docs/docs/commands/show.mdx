@@ -1,0 +1,37 @@
+---
+title: mx show
+description: Display a specific documentation entry in full
+---
+
+## Usage
+
+```bash
+mx show <package> <entry>
+```
+
+Shows the full content of a documentation entry. Tries an exact match on the entry name first, then falls back to FTS search if no exact match is found.
+
+## Examples
+
+```bash
+# Show a specific entry
+mx show fastapi "Dependency Injection"
+
+# Exact entry name
+mx show react "useEffect"
+```
+
+## Output
+
+```
+$ mx show fastapi "Dependency Injection"
+
+  fastapi@0.115.0 — Dependency Injection
+  ─────────────────────────────────────
+
+  FastAPI has a powerful but intuitive dependency injection system.
+  It is designed to be very simple to use, and to make it very easy
+  for any developer to integrate other components with FastAPI...
+```
+
+The full entry content is printed to stdout, making it easy to pipe to other tools or pagers.

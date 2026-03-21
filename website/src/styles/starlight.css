@@ -1,0 +1,8 @@
+/* Starlight theme overrides to match mandex.dev */
+:root {
+  --sl-color-accent-low: #05966920;
+  --sl-color-accent: #059669;
+  --sl-color-accent-high: #047857;
+  --sl-font: 'Geist', system-ui, -apple-system, sans-serif;
+  --sl-font-system-mono: 'Geist Mono', ui-monospace, monospace;
+}

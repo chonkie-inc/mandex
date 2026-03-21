@@ -1,0 +1,48 @@
+---
+title: mx build
+description: Build a .mandex package from a docs directory
+---
+
+## Usage
+
+```bash
+mx build <path> --name <name> --version <version> [-o output]
+```
+
+For package authors. Walks a directory of Markdown/MDX files, chunks the content, and creates a `.mandex` package with a SQLite FTS5 index.
+
+## Flags
+
+| Flag | Description |
+|---|---|
+| `--name <name>` | Package name (required) |
+| `--version <version>` | Package version (required) |
+| `-o <path>` | Output file path (default: `./<name>-<version>.mandex`) |
+
+## Example
+
+```bash
+# Build from a docs directory
+mx build ./docs --name mylib --version 1.0.0
+
+# Custom output path
+mx build ./docs --name mylib --version 1.0.0 -o dist/mylib.mandex
+```
+
+```
+$ mx build ./docs --name mylib --version 1.0.0
+
+  Scanning ./docs...
+  ✓ 47 files, 312 chunks
+  ✓ FTS5 index built
+  ✓ mylib-1.0.0.mandex (1.8 MB)
+```
+
+## What happens
+
+1. Recursively walks the directory for `.md` and `.mdx` files
+2. Chunks content into searchable entries
+3. Builds a SQLite database with FTS5 full-text search index
+4. Compresses with zstd into a `.mandex` file
+
+See [For Authors](/docs/for-authors) for a full guide on creating and publishing packages.

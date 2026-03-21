@@ -1,0 +1,28 @@
+---
+title: mandex
+description: Documentation packages for AI agents
+---
+
+**mandex** is a CLI tool that gives AI coding agents instant, offline access to library documentation. It downloads documentation as local SQLite indexes — one download gives you version-pinned search with no rate limits, no latency, and no API keys.
+
+## Quick install
+
+```bash
+curl -fsSL https://mandex.dev/install.sh | sh
+```
+
+## How it works
+
+1. **Pull** documentation packages from the registry
+2. **Search** them locally with full-text search + neural reranking
+3. **Sync** to auto-detect and pull docs for all project dependencies
+
+```bash
+mx pull fastapi@0.115.0     # download docs
+mx search fastapi "rate limiting"  # instant local search
+mx sync                      # pull docs for all deps
+```
+
+## Integrations
+
+mandex auto-detects and configures itself for Claude Code, Cursor, Codex, and Windsurf during `mx init`.

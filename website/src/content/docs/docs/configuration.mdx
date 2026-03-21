@@ -1,0 +1,50 @@
+---
+title: Configuration
+description: Customize mandex search, network, and display settings
+---
+
+The config file lives at `~/.mandex/config.toml`. It is created automatically by `mx init`.
+
+## Sections
+
+### `[search]`
+
+```toml
+[search]
+results = 5              # default number of results
+rerank = true            # enable neural reranking
+rerank_model = "default" # reranker model name
+rerank_candidates = 20   # FTS candidates to rerank
+```
+
+### `[network]`
+
+```toml
+[network]
+cdn_url = "https://cdn.mandex.dev"
+api_url = "https://registry.mandex.dev"
+```
+
+### `[display]`
+
+```toml
+[display]
+color = true
+```
+
+## Environment variable overrides
+
+Every config option can be overridden with an environment variable using the `MX_` prefix. Nest levels are separated by `_`:
+
+| Config key | Environment variable |
+|---|---|
+| `search.results` | `MX_SEARCH_RESULTS` |
+| `search.rerank` | `MX_SEARCH_RERANK` |
+| `search.rerank_candidates` | `MX_SEARCH_RERANK_CANDIDATES` |
+| `network.cdn_url` | `MX_NETWORK_CDN_URL` |
+| `display.color` | `MX_DISPLAY_COLOR` |
+
+```bash
+# Override results count for a single command
+MX_SEARCH_RESULTS=10 mx search fastapi "middleware"
+```

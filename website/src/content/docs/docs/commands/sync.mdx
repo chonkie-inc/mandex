@@ -1,0 +1,40 @@
+---
+title: mx sync
+description: Auto-detect and pull docs for project dependencies
+---
+
+## Usage
+
+```bash
+mx sync
+```
+
+Reads dependency files in the current directory and pulls documentation for every detected dependency that has a mandex package available.
+
+## Supported dependency files
+
+- `package.json` (Node.js)
+- `requirements.txt` (Python)
+- `pyproject.toml` (Python)
+- `Cargo.toml` (Rust)
+
+## Example
+
+```
+$ mx sync
+
+  Scanning dependencies...
+  ◇  package.json — 4 packages found
+
+  ✓ react@19.0.0          up to date
+  ✓ next@15.1.0            up to date
+  ↓ zod@3.24.0             ████████████████████ 100%
+  · tailwindcss             not in registry
+
+  └  3 packages synced
+```
+
+Each dependency shows one of:
+- **up to date** — already pulled at the correct version
+- **download progress** — pulling a new or updated package
+- **not in registry** — no mandex package available (skipped)
