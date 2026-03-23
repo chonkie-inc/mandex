@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use memmap2::Mmap;
 use ort::session::Session;
 use ort::value::Tensor;
 use std::path::Path;
@@ -33,8 +34,29 @@ fn ensure_cdn_file(local_path: &Path, cdn_url: &str, filename: &str) -> Result<(
 }
 
 /// Download the reranker model if it doesn't exist locally.
+/// Prefers the pre-optimized .ort format; falls back to .onnx.
 pub fn ensure_model(model_path: &Path, cdn_url: &str) -> Result<()> {
+    // Try .ort first (pre-optimized, flatbuffers, faster to load)
+    let ort_path = model_path.with_extension("ort");
+    if ort_path.exists() {
+        return Ok(());
+    }
+    // Try downloading .ort from CDN
+    if ensure_cdn_file(&ort_path, cdn_url, "reranker.ort").is_ok() {
+        return Ok(());
+    }
+    // Fall back to .onnx
     ensure_cdn_file(model_path, cdn_url, "reranker.onnx")
+}
+
+/// Resolve the actual model file path (.ort preferred over .onnx).
+pub fn resolve_model_file(model_path: &Path) -> std::path::PathBuf {
+    let ort_path = model_path.with_extension("ort");
+    if ort_path.exists() {
+        ort_path
+    } else {
+        model_path.to_path_buf()
+    }
 }
 
 /// Download the tokenizer if it doesn't exist locally.
@@ -42,15 +64,26 @@ pub fn ensure_tokenizer(tokenizer_path: &Path, cdn_url: &str) -> Result<()> {
     ensure_cdn_file(tokenizer_path, cdn_url, "tokenizer.tkz")
 }
 
+/// Choose intra-op thread count: use half the available cores, minimum 1, maximum 4.
+fn intra_threads() -> usize {
+    let cpus = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(1);
+    (cpus / 2).clamp(1, 4)
+}
+
 /// Rerank search results using the ONNX cross-encoder model.
 /// Returns results sorted by relevance score, truncated to `limit`.
-pub fn rerank(
+///
+/// Each candidate is a tagged tuple `(tag, SearchResult)` where the tag is
+/// preserved through reranking (e.g. package name + version).
+pub fn rerank_tagged<T>(
     model_path: &Path,
     tokenizer_path: &Path,
     query: &str,
-    candidates: Vec<SearchResult>,
+    candidates: Vec<(T, SearchResult)>,
     limit: usize,
-) -> Result<Vec<SearchResult>> {
+) -> Result<Vec<(T, SearchResult)>> {
     if candidates.is_empty() {
         return Ok(candidates);
     }
@@ -58,17 +91,40 @@ pub fn rerank(
     let tokenizer = Tokenizer::from_file(tokenizer_path)
         .map_err(|e| anyhow::anyhow!("Failed to load tokenizer: {e}"))?;
 
-    let mut session = Session::builder()
-        .map_err(|e| anyhow::anyhow!("ort session builder: {e}"))?
-        .with_intra_threads(1)
-        .map_err(|e| anyhow::anyhow!("ort intra_threads: {e}"))?
-        .commit_from_file(model_path)
-        .map_err(|e| anyhow::anyhow!("ort load model: {e}"))?;
+    let threads = intra_threads();
+    let actual_model_path = resolve_model_file(model_path);
+    let is_ort_format = actual_model_path.extension().is_some_and(|e| e == "ort");
+
+    // mmap the model file for zero-copy loading
+    let file = std::fs::File::open(&actual_model_path)
+        .map_err(|e| anyhow::anyhow!("Failed to open model: {e}"))?;
+    let mmap = unsafe { Mmap::map(&file) }
+        .map_err(|e| anyhow::anyhow!("Failed to mmap model: {e}"))?;
+
+    let mut builder = Session::builder()
+        .map_err(|e| anyhow::anyhow!("ort session builder: {e}"))?;
+    builder = builder.with_intra_threads(threads)
+        .map_err(|e| anyhow::anyhow!("ort intra_threads: {e}"))?;
+
+    // Skip graph optimizations for pre-optimized .ort models
+    if is_ort_format {
+        builder = builder.with_optimization_level(ort::session::builder::GraphOptimizationLevel::Disable)
+            .map_err(|e| anyhow::anyhow!("ort optimization level: {e}"))?;
+    }
+
+    // Use zero-copy mmap loading (.ort gets direct byte access, .onnx gets regular memory load)
+    let mut session = if is_ort_format {
+        builder.commit_from_memory_directly(&mmap)
+            .map_err(|e| anyhow::anyhow!("ort load model: {e}"))?
+    } else {
+        builder.commit_from_memory_directly(&mmap)
+            .map_err(|e| anyhow::anyhow!("ort load model: {e}"))?
+    };
 
     // Prepare document pairs: (name + first 300 chars of content)
     let docs: Vec<(String, String)> = candidates
         .iter()
-        .map(|r| {
+        .map(|(_, r)| {
             let snippet: String = r.content.chars().take(300).collect();
             (r.name.clone(), snippet)
         })
@@ -100,23 +156,27 @@ pub fn rerank(
     scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
     scored.truncate(limit);
 
-    // Rebuild results in reranked order
-    let mut candidates = candidates;
-    let reranked: Vec<SearchResult> = scored
+    // Rebuild results in reranked order — wrap in Option so we can take ownership
+    let mut candidates: Vec<Option<(T, SearchResult)>> = candidates.into_iter().map(Some).collect();
+    let reranked: Vec<(T, SearchResult)> = scored
         .into_iter()
-        .map(|(_, idx)| {
-            std::mem::replace(
-                &mut candidates[idx],
-                SearchResult {
-                    name: String::new(),
-                    content: String::new(),
-                    rank: 0.0,
-                },
-            )
-        })
+        .filter_map(|(_, idx)| candidates[idx].take())
         .collect();
 
     Ok(reranked)
+}
+
+/// Convenience wrapper for untagged results (single-package use).
+pub fn rerank(
+    model_path: &Path,
+    tokenizer_path: &Path,
+    query: &str,
+    candidates: Vec<SearchResult>,
+    limit: usize,
+) -> Result<Vec<SearchResult>> {
+    let tagged: Vec<((), SearchResult)> = candidates.into_iter().map(|r| ((), r)).collect();
+    let reranked = rerank_tagged(model_path, tokenizer_path, query, tagged, limit)?;
+    Ok(reranked.into_iter().map(|(_, r)| r).collect())
 }
 
 fn tokenize_pairs(

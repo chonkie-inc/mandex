@@ -951,6 +951,7 @@ dependencies = [
  "dialoguer",
  "dirs",
  "hex",
+ "memmap2",
  "ndarray",
  "ort",
  "reqwest",
@@ -988,6 +989,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4976e7508215f0f2d97dd958fca287c39aa91c7386c1e8f1bb506e6fe708eab8"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "memmap2"
+version = "0.9.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "714098028fe011992e1c3962653c96b2d578c4b4bce9036e15ff220319b1e0e3"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

@@ -1,6 +1,6 @@
 [package]
 name = "mandex"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2024"
 description = "Documentation packages for AI agents"
 license = "MIT"
@@ -32,10 +32,11 @@ stop-words = "0.10"
 ort = { version = "2.0.0-rc.12", default-features = false, features = ["std", "ndarray", "tracing", "download-binaries", "tls-rustls", "copy-dylibs", "api-24"], optional = true }
 ndarray = { version = "0.17", optional = true }
 tokie = { version = "0.0.2", optional = true }
+memmap2 = { version = "0.9", optional = true }
 
 [features]
 default = ["reranker"]
-reranker = ["dep:ort", "dep:ndarray", "dep:tokie"]
+reranker = ["dep:ort", "dep:ndarray", "dep:tokie", "dep:memmap2"]
 
 [profile.release]
 opt-level = 3

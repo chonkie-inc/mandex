@@ -47,44 +47,52 @@ pub fn run(
         results_limit
     };
 
-    let mut total_results = 0;
+    // Collect all results across all packages with their package info
+    let mut all_results: Vec<((String, String), db::SearchResult)> = Vec::new();
 
     for (name, versions) in &packages {
         let version = versions.last().unwrap();
         let db_path = paths::package_db_path(name, version)?;
         let conn = db::open_db(&db_path)?;
 
-        let mut results = db::search(&conn, query, fetch_limit)?;
-
-        #[cfg(feature = "reranker")]
-        if use_rerank && !results.is_empty() {
-            let model_path = config::resolve_model_path(&config.search.rerank_model)?;
-            rerank::ensure_model(&model_path, &config.network.cdn_url)?;
-            let tokenizer_path = model_path.with_file_name("tokenizer.tkz");
-            rerank::ensure_tokenizer(&tokenizer_path, &config.network.cdn_url)?;
-            results = rerank::rerank(&model_path, &tokenizer_path, query, results, results_limit)?;
-        } else {
-            results.truncate(results_limit);
-        }
-
-        #[cfg(not(feature = "reranker"))]
-        {
-            let _ = (use_rerank, config);
-            results.truncate(results_limit);
-        }
-
-        for result in &results {
-            println!(
-                "\x1b[33m{name}@{version}\x1b[0m — \x1b[1m{}\x1b[0m",
-                result.name
-            );
-            println!();
-            println!("{}", result.content);
-            println!("\n{}\n", "─".repeat(60));
-            total_results += 1;
+        let results = db::search(&conn, query, fetch_limit)?;
+        for r in results {
+            all_results.push(((name.clone(), version.clone()), r));
         }
     }
 
+    // Rerank all results in a single pass, or just truncate
+    #[cfg(feature = "reranker")]
+    let final_results = if use_rerank && !all_results.is_empty() {
+        let model_path = config::resolve_model_path(&config.search.rerank_model)?;
+        rerank::ensure_model(&model_path, &config.network.cdn_url)?;
+        let tokenizer_path = model_path.with_file_name("tokenizer.tkz");
+        rerank::ensure_tokenizer(&tokenizer_path, &config.network.cdn_url)?;
+        rerank::rerank_tagged(&model_path, &tokenizer_path, query, all_results, results_limit)?
+    } else {
+        all_results.truncate(results_limit);
+        all_results
+    };
+
+    #[cfg(not(feature = "reranker"))]
+    let final_results = {
+        let _ = (use_rerank, config);
+        all_results.truncate(results_limit);
+        all_results
+    };
+
+    // Print results
+    for ((name, version), result) in &final_results {
+        println!(
+            "\x1b[33m{name}@{version}\x1b[0m — \x1b[1m{}\x1b[0m",
+            result.name
+        );
+        println!();
+        println!("{}", result.content);
+        println!("\n{}\n", "─".repeat(60));
+    }
+
+    let total_results = final_results.len();
     if total_results == 0 {
         println!("No results for '{query}'");
     } else {
