@@ -126,12 +126,16 @@ impl ConfigFile {
     }
 }
 
-/// Run first-time setup: download the reranker model if missing.
+/// Run first-time setup: download the reranker model and tokenizer if missing.
 #[cfg(feature = "reranker")]
 pub fn ensure_setup(config: &ConfigFile) -> Result<()> {
     let model_path = resolve_model_path(&config.search.rerank_model)?;
     if !model_path.exists() {
         crate::rerank::ensure_model(&model_path, &config.network.cdn_url)?;
+    }
+    let tokenizer_path = model_path.with_file_name("tokenizer.tkz");
+    if !tokenizer_path.exists() {
+        crate::rerank::ensure_tokenizer(&tokenizer_path, &config.network.cdn_url)?;
     }
     Ok(())
 }

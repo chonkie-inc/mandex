@@ -2,41 +2,51 @@ use anyhow::{Context, Result};
 use ort::session::Session;
 use ort::value::Tensor;
 use std::path::Path;
-use tokenizers::Tokenizer;
+use tokie::Tokenizer;
 
 use crate::storage::db::SearchResult;
 
-/// Download the reranker model if it doesn't exist locally.
-pub fn ensure_model(model_path: &Path, cdn_url: &str) -> Result<()> {
-    if model_path.exists() {
+/// Download a file from CDN if it doesn't exist locally.
+fn ensure_cdn_file(local_path: &Path, cdn_url: &str, filename: &str) -> Result<()> {
+    if local_path.exists() {
         return Ok(());
     }
 
-    if let Some(parent) = model_path.parent() {
+    if let Some(parent) = local_path.parent() {
         std::fs::create_dir_all(parent)?;
     }
 
     let cdn_root = cdn_url.trim_end_matches("/v1");
-    let url = format!("{cdn_root}/models/reranker.onnx");
-    // Message handled by caller (init.rs)
+    let url = format!("{cdn_root}/models/{filename}");
 
     let response = reqwest::blocking::get(&url)
-        .with_context(|| format!("Failed to download reranker model from {url}"))?;
+        .with_context(|| format!("Failed to download {filename} from {url}"))?;
 
     if !response.status().is_success() {
-        anyhow::bail!("Failed to download reranker model (HTTP {})", response.status());
+        anyhow::bail!("Failed to download {filename} (HTTP {})", response.status());
     }
 
     let bytes = response.bytes()?;
-    std::fs::write(model_path, &bytes)?;
+    std::fs::write(local_path, &bytes)?;
 
     Ok(())
+}
+
+/// Download the reranker model if it doesn't exist locally.
+pub fn ensure_model(model_path: &Path, cdn_url: &str) -> Result<()> {
+    ensure_cdn_file(model_path, cdn_url, "reranker.onnx")
+}
+
+/// Download the tokenizer if it doesn't exist locally.
+pub fn ensure_tokenizer(tokenizer_path: &Path, cdn_url: &str) -> Result<()> {
+    ensure_cdn_file(tokenizer_path, cdn_url, "tokenizer.tkz")
 }
 
 /// Rerank search results using the ONNX cross-encoder model.
 /// Returns results sorted by relevance score, truncated to `limit`.
 pub fn rerank(
     model_path: &Path,
+    tokenizer_path: &Path,
     query: &str,
     candidates: Vec<SearchResult>,
     limit: usize,
@@ -45,7 +55,7 @@ pub fn rerank(
         return Ok(candidates);
     }
 
-    let tokenizer = Tokenizer::from_pretrained("cross-encoder/ms-marco-MiniLM-L-4-v2", None)
+    let tokenizer = Tokenizer::from_file(tokenizer_path)
         .map_err(|e| anyhow::anyhow!("Failed to load tokenizer: {e}"))?;
 
     let mut session = Session::builder()
@@ -95,7 +105,6 @@ pub fn rerank(
     let reranked: Vec<SearchResult> = scored
         .into_iter()
         .map(|(_, idx)| {
-            // Take ownership by replacing with a dummy — indices are unique so each is taken once
             std::mem::replace(
                 &mut candidates[idx],
                 SearchResult {
@@ -121,19 +130,11 @@ fn tokenize_pairs(
 
     for (name, content) in docs {
         let doc_text = format!("{} {}", name, content);
-        let encoding = tokenizer
-            .encode((query, doc_text.as_str()), true)
-            .unwrap();
+        let pair = tokenizer.encode_pair(query, &doc_text, true);
 
-        all_ids.push(encoding.get_ids().iter().map(|&x| x as i64).collect());
-        all_mask.push(
-            encoding
-                .get_attention_mask()
-                .iter()
-                .map(|&x| x as i64)
-                .collect(),
-        );
-        all_types.push(encoding.get_type_ids().iter().map(|&x| x as i64).collect());
+        all_ids.push(pair.ids.iter().map(|&x| x as i64).collect());
+        all_mask.push(pair.attention_mask.iter().map(|&x| x as i64).collect());
+        all_types.push(pair.type_ids.iter().map(|&x| x as i64).collect());
     }
 
     let batch = all_ids.len();

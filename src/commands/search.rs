@@ -60,7 +60,9 @@ pub fn run(
         if use_rerank && !results.is_empty() {
             let model_path = config::resolve_model_path(&config.search.rerank_model)?;
             rerank::ensure_model(&model_path, &config.network.cdn_url)?;
-            results = rerank::rerank(&model_path, query, results, results_limit)?;
+            let tokenizer_path = model_path.with_file_name("tokenizer.tkz");
+            rerank::ensure_tokenizer(&tokenizer_path, &config.network.cdn_url)?;
+            results = rerank::rerank(&model_path, &tokenizer_path, query, results, results_limit)?;
         } else {
             results.truncate(results_limit);
         }
