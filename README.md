@@ -4,7 +4,7 @@
 
 <p align="center">
   <b>Documentation packages for AI agents.</b><br>
-  <i>The fastest way for agents to read the damn docs.</i>
+  <i>The fastest way for agents to read the docs.</i>
 </p>
 
 <p align="center">
