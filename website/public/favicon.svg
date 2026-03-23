@@ -7,6 +7,6 @@
       .text { fill: #000; }
     }
   </style>
-  <rect class="bg" width="128" height="128" rx="20" ry="20"/>
+  <rect class="bg" width="128" height="128" rx="28" ry="28"/>
   <text class="text" x="64" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" text-anchor="middle">mx</text>
 </svg>
