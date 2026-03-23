@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 
-// Generate paths for packages known at build time, but also handle unknown ones client-side
 export async function getStaticPaths() {
   let packages: { name: string }[] = [];
   try {
@@ -9,26 +8,15 @@ export async function getStaticPaths() {
     packages = await res.json();
   } catch (e) {}
 
-  const paths = await Promise.all(
-    packages.map(async (pkg) => {
-      try {
-        const detailRes = await fetch(`https://api.mandex.dev/packages/${pkg.name}`);
-        const detail = await detailRes.json();
-        return { params: { name: pkg.name }, props: { pkg: detail } };
-      } catch {
-        return { params: { name: pkg.name }, props: { pkg: null } };
-      }
-    })
-  );
-
-  return paths;
+  return packages.map((pkg) => ({
+    params: { name: pkg.name },
+  }));
 }
 
-const { pkg: staticPkg } = Astro.props;
 const pkgName = Astro.params.name;
 ---
 
-<Layout title={`${staticPkg?.name || pkgName} — mandex`} description={staticPkg?.description || ''}>
+<Layout title={`${pkgName} — mandex`} description="">
   <div class="flex-1 flex flex-col min-h-0 overflow-y-auto">
     <!-- Back link -->
     <div class="shrink-0 px-5 py-2.5 border-b" style="border-color: var(--color-border);">
@@ -44,7 +32,6 @@ const pkgName = Astro.params.name;
       </a>
     </div>
 
-    <!-- Content (populated client-side if needed) -->
     <div id="pkg-content">
       <div class="px-5 py-8 text-center font-mono text-sm" style="color: var(--color-text-tertiary);" id="loading-msg">
         Loading package details...
@@ -52,7 +39,7 @@ const pkgName = Astro.params.name;
     </div>
   </div>
 
-  <script is:inline define:vars={{ staticPkg, pkgName }}>
+  <script is:inline define:vars={{ pkgName }}>
     (function() {
       var contentEl = document.getElementById('pkg-content');
       var loadingEl = document.getElementById('loading-msg');
@@ -80,7 +67,6 @@ const pkgName = Astro.params.name;
 
         var html = '';
 
-        // Header
         html += '<div class="shrink-0 px-5 py-6 border-b" style="border-color: var(--color-border);">';
         html += '<div class="flex items-start justify-between gap-4 flex-wrap">';
         html += '<div class="flex flex-col gap-2">';
@@ -99,7 +85,6 @@ const pkgName = Astro.params.name;
         }
         html += '</div></div>';
 
-        // Install command
         html += '<div class="shrink-0 px-5 py-4 border-b" style="border-color: var(--color-border);">';
         html += '<div class="flex items-center gap-2 mb-2">';
         html += '<span class="text-[11px] font-mono font-medium uppercase tracking-widest" style="color: var(--color-text-tertiary);">Install</span>';
@@ -110,18 +95,15 @@ const pkgName = Astro.params.name;
         html += '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
         html += '</button></div></div>';
 
-        // Versions header
         html += '<div class="px-5 py-2.5 border-b shrink-0 flex items-center gap-2" style="border-color: var(--color-border);">';
         html += '<span class="text-[11px] font-mono font-medium uppercase tracking-widest" style="color: var(--color-text-tertiary);">Versions</span>';
         html += '<span class="text-[11px] font-mono ml-1" style="color: var(--color-text-tertiary);">(' + versions.length + ')</span>';
         html += '</div>';
 
-        // Table header
         html += '<div class="shrink-0 grid grid-cols-4 px-5 py-2 border-b font-mono text-[11px] font-medium uppercase tracking-widest" style="border-color: var(--color-border); color: var(--color-text-tertiary);">';
         html += '<span>Version</span><span class="text-right">Entries</span><span class="text-right">Size</span><span class="text-right">Published</span>';
         html += '</div>';
 
-        // Version rows
         html += '<div class="flex-1 overflow-y-auto">';
         versions.forEach(function(v) {
           var isLatest = v.version === latest;
@@ -141,7 +123,6 @@ const pkgName = Astro.params.name;
 
         contentEl.innerHTML = html;
 
-        // Wire up copy button
         var copyBtn = document.getElementById('copy-install');
         if (copyBtn) {
           copyBtn.addEventListener('click', function() {
@@ -155,13 +136,6 @@ const pkgName = Astro.params.name;
         }
       }
 
-      // Show static data immediately if available, then refresh from API
-      if (staticPkg && staticPkg.name) {
-        if (loadingEl) loadingEl.remove();
-        renderPackage(staticPkg);
-      }
-
-      // Always fetch fresh data from API
       fetch('https://api.mandex.dev/packages/' + pkgName)
         .then(function(res) {
           if (!res.ok) throw new Error('Not found');
@@ -172,9 +146,7 @@ const pkgName = Astro.params.name;
           renderPackage(data);
         })
         .catch(function() {
-          if (!staticPkg || !staticPkg.name) {
-            if (loadingEl) loadingEl.textContent = 'Package not found.';
-          }
+          if (loadingEl) loadingEl.textContent = 'Package not found.';
         });
     })();
   </script>
