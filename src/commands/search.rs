@@ -6,7 +6,7 @@ use crate::config::{self, ConfigFile};
 use crate::config::ConfigFile;
 #[cfg(feature = "reranker")]
 use crate::rerank;
-use crate::storage::{db, paths};
+use crate::storage::{db, paths, project};
 
 pub fn run(
     package: Option<&str>,
@@ -16,30 +16,6 @@ pub fn run(
     rerank_candidates: usize,
     config: &ConfigFile,
 ) -> Result<()> {
-    let packages = match package {
-        Some(name) => {
-            let pkg_dir = paths::package_dir(name)?;
-            if !pkg_dir.exists() {
-                anyhow::bail!("Package '{name}' is not installed. Run: mx pull {name}");
-            }
-            let installed = paths::installed_packages()?;
-            let versions: Vec<_> = installed
-                .into_iter()
-                .filter(|(n, _)| n == name)
-                .collect();
-            if versions.is_empty() {
-                anyhow::bail!("Package '{name}' is not installed. Run: mx pull {name}");
-            }
-            versions
-        }
-        None => paths::installed_packages()?,
-    };
-
-    if packages.is_empty() {
-        println!("No packages installed. Run: mx pull <package>");
-        return Ok(());
-    }
-
     // If reranking, fetch more candidates from FTS5; otherwise just fetch the limit
     let fetch_limit = if use_rerank {
         rerank_candidates.max(results_limit)
@@ -47,21 +23,29 @@ pub fn run(
         results_limit
     };
 
-    // Collect all results across all packages with their package info
-    let mut all_results: Vec<((String, String), db::SearchResult)> = Vec::new();
+    // Try project index first, fall back to global cache
+    let final_results = if let Some(results) = try_project_search(package, query, fetch_limit)? {
+        results
+    } else {
+        global_search(package, query, fetch_limit)?
+    };
 
-    for (name, versions) in &packages {
-        let version = versions.last().unwrap();
-        let db_path = paths::package_db_path(name, version)?;
-        let conn = db::open_db(&db_path)?;
+    // Convert to tagged format for reranking
+    let mut all_results: Vec<((String, String), db::SearchResult)> = final_results
+        .into_iter()
+        .map(|r| {
+            (
+                (r.package, r.version),
+                db::SearchResult {
+                    name: r.name,
+                    content: r.content,
+                    rank: r.rank,
+                },
+            )
+        })
+        .collect();
 
-        let results = db::search(&conn, query, fetch_limit)?;
-        for r in results {
-            all_results.push(((name.clone(), version.clone()), r));
-        }
-    }
-
-    // Rerank all results in a single pass, or just truncate
+    // Rerank or truncate
     #[cfg(feature = "reranker")]
     let final_results = if use_rerank && !all_results.is_empty() {
         let model_path = config::resolve_model_path(&config.search.rerank_model)?;
@@ -103,4 +87,77 @@ pub fn run(
     }
 
     Ok(())
+}
+
+/// Search using the project's merged index.db if available.
+fn try_project_search(
+    package: Option<&str>,
+    query: &str,
+    limit: usize,
+) -> Result<Option<Vec<db::IndexSearchResult>>> {
+    let project_root = match project::find_project_dir() {
+        Some(root) => root,
+        None => return Ok(None),
+    };
+
+    let idx_path = project::index_path(&project_root);
+    if !idx_path.exists() {
+        return Ok(None);
+    }
+
+    let conn = db::open_db(&idx_path)?;
+    let results = db::search_index(&conn, query, limit, package)?;
+    Ok(Some(results))
+}
+
+/// Fallback: search across global cache, iterating per-package.
+fn global_search(
+    package: Option<&str>,
+    query: &str,
+    limit: usize,
+) -> Result<Vec<db::IndexSearchResult>> {
+    let packages = match package {
+        Some(name) => {
+            let pkg_dir = paths::package_dir(name)?;
+            if !pkg_dir.exists() {
+                anyhow::bail!("Package '{name}' is not installed. Run: mx pull {name}");
+            }
+            let installed = paths::installed_packages()?;
+            let versions: Vec<_> = installed
+                .into_iter()
+                .filter(|(n, _)| n == name)
+                .collect();
+            if versions.is_empty() {
+                anyhow::bail!("Package '{name}' is not installed. Run: mx pull {name}");
+            }
+            versions
+        }
+        None => paths::installed_packages()?,
+    };
+
+    if packages.is_empty() {
+        println!("No packages installed. Run: mx pull <package>");
+        return Ok(vec![]);
+    }
+
+    let mut all_results: Vec<db::IndexSearchResult> = Vec::new();
+
+    for (name, versions) in &packages {
+        let version = versions.last().unwrap();
+        let db_path = paths::package_db_path(name, version)?;
+        let conn = db::open_db(&db_path)?;
+
+        let results = db::search(&conn, query, limit)?;
+        for r in results {
+            all_results.push(db::IndexSearchResult {
+                package: name.clone(),
+                version: version.clone(),
+                name: r.name,
+                content: r.content,
+                rank: r.rank,
+            });
+        }
+    }
+
+    Ok(all_results)
 }

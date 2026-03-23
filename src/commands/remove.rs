@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use crate::storage::paths;
+use crate::storage::{paths, project};
 
 pub fn run(package: &str, version: Option<&str>) -> Result<()> {
     match version {
@@ -25,6 +25,15 @@ pub fn run(package: &str, version: Option<&str>) -> Result<()> {
             }
             std::fs::remove_dir_all(&pkg_dir)?;
             println!("Removed all versions of {package}");
+        }
+    }
+
+    // Update project manifest + index if in a project directory
+    if let Some(project_root) = project::find_project_dir() {
+        let mut manifest = project::load_manifest(&project_root)?;
+        if manifest.packages.remove(package).is_some() {
+            project::save_manifest(&project_root, &manifest)?;
+            project::rebuild_index(&project_root, &manifest)?;
         }
     }
 

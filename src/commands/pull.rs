@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use std::io::Read;
 
-use crate::storage::{db, paths};
+use crate::storage::{db, paths, project};
 
 const CDN_BASE: &str = "https://cdn.mandex.dev/v1";
 const API_BASE: &str = "https://api.mandex.dev";
@@ -22,6 +22,14 @@ pub fn run(package: &str) -> Result<()> {
 
     println!("Downloading {name}@{version}...");
     download_package(name, &version)?;
+
+    // Update project manifest + index if in a project directory
+    if let Some(project_root) = project::find_project_dir() {
+        let mut manifest = project::load_manifest(&project_root)?;
+        manifest.packages.insert(name.to_string(), version.clone());
+        project::save_manifest(&project_root, &manifest)?;
+        project::rebuild_index(&project_root, &manifest)?;
+    }
 
     Ok(())
 }

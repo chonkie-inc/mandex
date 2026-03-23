@@ -1,9 +1,9 @@
 use anyhow::Result;
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::path::Path;
 
 use crate::commands::pull;
-use crate::storage::paths;
+use crate::storage::{paths, project};
 
 struct DetectedDep {
     name: String,
@@ -101,18 +101,22 @@ pub fn run() -> Result<()> {
     let mut existing_count = 0;
     let mut not_found_count = 0;
 
+    // Track resolved packages for manifest
+    let mut resolved: BTreeMap<String, String> = BTreeMap::new();
+
     for dep in &deps {
         // Already installed?
         if installed_names.contains(&dep.name) {
-            let versions = installed
+            let version = installed
                 .iter()
                 .find(|(n, _)| n == &dep.name)
-                .map(|(_, v)| v.last().unwrap().as_str())
-                .unwrap_or("?");
+                .map(|(_, v)| v.last().unwrap().clone())
+                .unwrap_or_else(|| "?".to_string());
             println!(
                 "  \x1b[32m✓\x1b[0m {} \x1b[2m{} (already installed)\x1b[0m",
-                dep.name, versions
+                dep.name, version
             );
+            resolved.insert(dep.name.clone(), version);
             existing_count += 1;
             continue;
         }
@@ -127,6 +131,7 @@ pub fn run() -> Result<()> {
                             "  \x1b[32m↓\x1b[0m {}@{} \x1b[2m(new)\x1b[0m",
                             dep.name, version
                         );
+                        resolved.insert(dep.name.clone(), version);
                         new_count += 1;
                     }
                     Err(e) => {
@@ -161,6 +166,21 @@ pub fn run() -> Result<()> {
             String::new()
         }
     );
+
+    // Build project manifest + merged index
+    if !resolved.is_empty() {
+        let project_root = std::env::current_dir()?;
+        let manifest = project::Manifest { packages: resolved };
+        project::save_manifest(&project_root, &manifest)?;
+
+        let total_entries = project::rebuild_index(&project_root, &manifest)?;
+        println!(
+            "  \x1b[2mBuilt search index ({} entries from {} packages)\x1b[0m",
+            total_entries,
+            manifest.packages.len()
+        );
+    }
+
     println!();
 
     Ok(())

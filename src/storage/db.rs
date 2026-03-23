@@ -175,6 +175,117 @@ fn run_fts_query(conn: &Connection, fts_query: &str, boost: f64, limit: usize) -
     Ok(results)
 }
 
+/// Search result from the merged project index (includes package info).
+pub struct IndexSearchResult {
+    pub package: String,
+    pub version: String,
+    pub name: String,
+    pub content: String,
+    pub rank: f64,
+}
+
+/// Searches the merged project index.
+/// If `package_filter` is Some, only returns results from that package.
+pub fn search_index(
+    conn: &Connection,
+    query: &str,
+    limit: usize,
+    package_filter: Option<&str>,
+) -> Result<Vec<IndexSearchResult>> {
+    let stop_words: std::collections::HashSet<String> = stop_words::get(stop_words::LANGUAGE::English)
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+
+    let cleaned: Vec<String> = query
+        .split_whitespace()
+        .map(|w| w.chars().filter(|c| c.is_alphanumeric()).collect::<String>())
+        .filter(|w| !w.is_empty() && !stop_words.contains(&w.to_lowercase()))
+        .collect();
+    let words: Vec<&str> = cleaned.iter().map(|s| s.as_str()).collect();
+
+    if words.len() <= 1 {
+        let fts_query = if words.is_empty() { query.to_string() } else { words[0].to_string() };
+        return run_index_fts_query(conn, &fts_query, 1.0, limit, package_filter);
+    }
+
+    let and_query = words.join(" ");
+    let or_query = words.join(" OR ");
+
+    let and_results = run_index_fts_query(conn, &and_query, AND_BOOST, limit, package_filter).unwrap_or_default();
+    let or_results = run_index_fts_query(conn, &or_query, 1.0, limit, package_filter).unwrap_or_default();
+
+    let mut seen = std::collections::HashSet::new();
+    let mut merged: Vec<IndexSearchResult> = Vec::new();
+
+    for r in and_results.into_iter().chain(or_results) {
+        // Dedup by (package, name) to avoid cross-package collisions
+        let key = format!("{}:{}", r.package, r.name);
+        if seen.insert(key) {
+            merged.push(r);
+        }
+    }
+
+    merged.sort_by(|a, b| a.rank.partial_cmp(&b.rank).unwrap_or(std::cmp::Ordering::Equal));
+    merged.truncate(limit);
+
+    Ok(merged)
+}
+
+fn run_index_fts_query(
+    conn: &Connection,
+    fts_query: &str,
+    boost: f64,
+    limit: usize,
+    package_filter: Option<&str>,
+) -> Result<Vec<IndexSearchResult>> {
+    let (sql, params_vec): (String, Vec<Box<dyn rusqlite::types::ToSql>>) = if let Some(pkg) = package_filter {
+        (
+            "SELECT e.package, e.version, e.name, e.content, rank
+             FROM entries_fts
+             JOIN entries e ON e.id = entries_fts.rowid
+             WHERE entries_fts MATCH ?1 AND e.package = ?2
+             ORDER BY rank
+             LIMIT ?3".to_string(),
+            vec![
+                Box::new(fts_query.to_string()) as Box<dyn rusqlite::types::ToSql>,
+                Box::new(pkg.to_string()),
+                Box::new(limit as i64),
+            ],
+        )
+    } else {
+        (
+            "SELECT e.package, e.version, e.name, e.content, rank
+             FROM entries_fts
+             JOIN entries e ON e.id = entries_fts.rowid
+             WHERE entries_fts MATCH ?1
+             ORDER BY rank
+             LIMIT ?2".to_string(),
+            vec![
+                Box::new(fts_query.to_string()) as Box<dyn rusqlite::types::ToSql>,
+                Box::new(limit as i64),
+            ],
+        )
+    };
+
+    let mut stmt = conn.prepare(&sql)?;
+    let params_refs: Vec<&dyn rusqlite::types::ToSql> = params_vec.iter().map(|p| p.as_ref()).collect();
+    let results = stmt
+        .query_map(params_refs.as_slice(), |row| {
+            Ok(IndexSearchResult {
+                package: row.get(0)?,
+                version: row.get(1)?,
+                name: row.get(2)?,
+                content: row.get(3)?,
+                rank: row.get::<_, f64>(4)? * boost,
+            })
+        })?
+        .filter_map(|r| r.ok())
+        .collect();
+
+    Ok(results)
+}
+
 /// Gets a specific entry by name
 pub fn get_entry(conn: &Connection, name: &str) -> Result<Option<(String, String)>> {
     let mut stmt = conn.prepare("SELECT name, content FROM entries WHERE name = ?1")?;
