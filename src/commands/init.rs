@@ -61,22 +61,31 @@ fn install_claude_code() -> Result<()> {
 description: Look up local, version-pinned library documentation before writing code that uses any API
 ---
 
-Use `mx` to search local documentation instead of guessing APIs. Results are offline, instant, and version-pinned.
+Use `mx` to search local documentation instead of guessing APIs. Results are offline, instant, and version-pinned. Search results are automatically reranked by semantic relevance.
 
 ## Workflow
 
-1. `mx search <package> "<query>"` — find relevant entries (use `--rerank` for better accuracy)
-2. `mx show <package> <entry>` — read the full entry from the search results
+1. `mx search <package> "<query>"` — find relevant entries
+2. `mx show <package> "<entry>"` — read the full entry (use exact name from search results, including `>` hierarchy)
 3. Write code using the verified API
 
 ## Key commands
 
-- `mx search <package> "<query>"` — search within a package (`-n 5` to limit results)
-- `mx search "<query>"` — search across all installed packages
-- `mx show <package> <entry>` — show full content of a specific entry
+- `mx search <package> "<query>"` — search within a package (default ~10 results, use `-n 5` to limit)
+- `mx search "<query>"` — search across ALL installed packages (use `-n 3` to avoid large output)
+- `mx show <package> "<entry>"` — show full entry content (exact name match; falls back to search if not found)
+- `mx list` — show installed packages with entry counts and sizes
+- `mx info <package>` — show details for a specific package (versions, paths)
 - `mx pull <package>@<version>` — install docs for a package
 - `mx sync` — install docs for all project dependencies (reads package.json, requirements.txt, Cargo.toml, etc.)
-- `mx list` — show installed packages
+- `mx remove <package>` — remove an installed package (`--version` to remove a specific version)
+- `mx init` — first-time setup: integrates mandex with AI coding assistants (CLAUDE.md, etc.)
+
+## Important behaviors
+
+- Both arguments to `search` are positional — always quote the query: `mx search nextjs "routing"`, NOT `mx search nextjs`
+- When multiple versions are installed, search uses the latest version
+- If a package isn't installed, you'll get: `Error: Package 'foo' is not installed. Run: mx pull foo`
 
 ## Example
 
@@ -90,6 +99,7 @@ $ mx show fastapi "Dependencies"
 ## Tips
 
 - Always search before generating code that calls a library API
+- Use `-n 3` for exploratory searches across all packages
 - For broad questions, run 2-3 targeted searches in a sub-agent and synthesize
 - Run `mx sync` once per project to pull docs for all detected dependencies
 "#,
@@ -103,14 +113,19 @@ fn install_cursor() -> Result<()> {
     let rules_file = rules_dir.join("rules");
     let content = r#"# mandex documentation lookup
 
-When you need documentation for a library, use the `mx` CLI tool.
+When you need documentation for a library, use the `mx` CLI tool. Results are local, fast, and version-pinned. Search results are automatically reranked by semantic relevance.
 
 ## Commands
-- `mx search <package> "<query>"` — search installed docs
-- `mx show <package> <entry>` — get a full documentation entry
+- `mx search <package> "<query>"` — search within a package (use `-n 5` to limit results)
+- `mx search "<query>"` — search across ALL installed packages (use `-n 3` to avoid large output)
+- `mx show <package> "<entry>"` — show full entry content
+- `mx list` — show installed packages
+- `mx info <package>` — show package details
+- `mx pull <package>@<version>` — install docs
 - `mx sync` — install docs for all project dependencies
+- `mx remove <package>` — remove a package
 
-Prefer mx over web search for library documentation — results are local, fast, and version-pinned.
+Both arguments to `search` are positional — always quote the query: `mx search nextjs "routing"`, NOT `mx search nextjs`.
 "#;
     if rules_file.exists() {
         let existing = fs::read_to_string(&rules_file)?;
@@ -127,7 +142,7 @@ fn install_windsurf() -> Result<()> {
     let rules_file = home().join(".windsurfrules");
     let content = r#"# mandex documentation lookup
 
-When you need documentation for a library, use `mx search <package> "<query>"` or `mx show <package> <entry>`. Run `mx sync` once per project to install docs for all dependencies.
+When you need documentation for a library, use `mx search <package> "<query>"` or `mx show <package> "<entry>"`. Always quote the query. Use `-n 3` for global searches. Run `mx sync` once per project to install docs for all dependencies.
 "#;
     if rules_file.exists() {
         let existing = fs::read_to_string(&rules_file)?;
@@ -148,14 +163,17 @@ fn install_codex() -> Result<()> {
     let agents_file = codex_dir.join("AGENTS.md");
     let content = r#"## mandex documentation lookup
 
-When you need documentation for a library, use the `mx` CLI tool instead of web search.
+When you need documentation for a library, use the `mx` CLI tool instead of web search. Results are local, fast, version-pinned, and semantically reranked.
 
-- `mx search <package> "<query>"` — search installed docs
-- `mx search "<query>"` — search across all installed packages
-- `mx show <package> <entry>` — get a full documentation entry
+- `mx search <package> "<query>"` — search within a package (use `-n 5` to limit)
+- `mx search "<query>"` — search across ALL installed packages (use `-n 3` to avoid large output)
+- `mx show <package> "<entry>"` — show full entry content
+- `mx list` — show installed packages
+- `mx pull <package>@<version>` — install docs
 - `mx sync` — install docs for all project dependencies (reads package.json, requirements.txt, etc.)
+- `mx remove <package>` — remove a package
 
-Prefer mx over web search — results are local, fast, and version-pinned to the exact library version in use.
+Both arguments to `search` are positional — always quote the query: `mx search nextjs "routing"`, NOT `mx search nextjs`.
 "#;
     if agents_file.exists() {
         let existing = fs::read_to_string(&agents_file)?;
