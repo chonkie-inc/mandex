@@ -10,7 +10,7 @@
 >
 > We built mandex — local, version-pinned documentation packages for AI agents. One download, instant search, zero API calls.
 >
-> 55 packages. 1,400+ versions. 25ms search. Free forever.
+> 100+ packages. 1,500+ versions. 25ms search. Free forever.
 >
 > `curl -fsSL https://mandex.dev/install.sh | sh`
 >
@@ -53,7 +53,7 @@ We've been building mandex, an open-source CLI tool that gives AI agents instant
 - `mx sync` — reads your package.json/requirements.txt/Cargo.toml and pulls docs for all dependencies
 - `mx init` — auto-detects and configures Claude Code, Cursor, Codex, Copilot, Windsurf, Cline, and 4 more agents
 
-Everything is local, version-pinned, and free. The registry has 55 packages with 1,400+ version-matched doc sets (numpy alone has 38 versions from 1.23 to 2.4).
+Everything is local, version-pinned, and free. The registry has 100+ packages with 1,500+ version-matched doc sets (numpy alone has 38 versions from 1.23 to 2.4).
 
 Built in Rust. Optional ONNX reranker for better search quality. MIT licensed.
 
@@ -99,7 +99,7 @@ Hey all — we're the team behind Chonkie (the chunking library). We just shippe
 
 mandex packages documentation as local SQLite indexes. Agents pull them once, search locally in 25ms, and never need to hit the network again. It auto-detects your project dependencies and configures itself for Claude Code, Cursor, Codex, and 7 other agents.
 
-55 packages in the registry. 1,400+ versions. Free and open source.
+100+ packages in the registry. 1,500+ versions. Free and open source.
 
 Install: `curl -fsSL https://mandex.dev/install.sh | sh`
 Site: https://mandex.dev
@@ -118,7 +118,7 @@ From the Chonkie team — we built mandex to solve a problem every AI coding age
 **Why it matters:** As AI agents become the default way to write code, they need reliable access to docs — not web scraping, not RAG pipelines, not hoping the training data is fresh. mandex is the package manager for that.
 
 **Where we are:**
-- 55 packages, 1,400+ version-matched doc sets
+- 100+ packages, 1,500+ version-matched doc sets
 - Supports 10 AI agents (Claude Code, Cursor, Codex, Copilot, etc.)
 - Rust CLI, MIT licensed
 - Free registry on Cloudflare R2/D1
@@ -145,7 +145,7 @@ How it works:
     mx search fastapi "dependency injection"   # 25ms, no network
     mx sync   # reads package.json/requirements.txt, pulls all deps
 
-The registry currently has 55 packages with 1,400+ version-matched doc sets. numpy alone has 38 versions from 1.23.2 to 2.4.3, each with ~600 searchable entries extracted from docstrings.
+The registry currently has 100+ packages with 1,500+ version-matched doc sets. numpy alone has 38 versions from 1.23.2 to 2.4.3, each with ~600 searchable entries extracted from docstrings.
 
 Technical details:
 - Rust CLI, ~5MB binary
@@ -181,7 +181,7 @@ So I built mandex: a package manager for documentation. Library docs get compile
 
 `mx sync` reads your project's dependency files and pulls docs for everything automatically. `mx init` configures whichever AI tool you use.
 
-The registry has 55 packages across pip, npm, and cargo ecosystems — numpy (38 versions), scipy (24), pandas (13), fastapi, react, nextjs, prisma, shadcn-ui, and more.
+The registry has 100+ packages across pip, npm, and cargo ecosystems — numpy (38 versions), pytorch (22), scipy (24), pandas (13), fastapi, react, nextjs, prisma, storybook, puppeteer, and more.
 
 Written in Rust. Packages are ~0.5-3MB each. Optional ONNX reranker. MIT licensed.
 
@@ -205,7 +205,7 @@ What makes it different:
 → Universal: works with Claude Code, Cursor, GitHub Copilot, Codex, Windsurf, and 5 more agents
 → Auto-syncs: reads your package.json/requirements.txt and pulls docs for all dependencies
 
-55 packages in the registry today, including numpy, pandas, scipy, FastAPI, React, Next.js, Prisma, and more — with 1,400+ version-matched documentation sets.
+100+ packages in the registry today, including numpy, pandas, scipy, FastAPI, React, Next.js, Prisma, and more — with 1,500+ version-matched documentation sets.
 
 Open source. Free forever. Built in Rust.
 
@@ -223,7 +223,7 @@ At Chonkie, we built **mandex** to fix this: a package manager for documentation
 
 Think of it as npm for documentation. Pull once, search locally forever. No rate limits, no latency, no API keys.
 
-The registry already supports 55 packages across Python, JavaScript, and Rust ecosystems — with 1,400+ version-matched doc sets. numpy alone has 38 versions of documentation, so your agent always gets the right API for the version you're using.
+The registry already supports 100+ packages across Python, JavaScript, and Rust ecosystems — with 1,500+ version-matched doc sets. numpy alone has 38 versions of documentation, so your agent always gets the right API for the version you're using.
 
 We support 10 AI agents out of the box: Claude Code, Cursor, GitHub Copilot, Codex, Windsurf, Cline, OpenClaw, Amp, Antigravity, and Gemini.
 
