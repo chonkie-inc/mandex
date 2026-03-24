@@ -26,8 +26,9 @@ export default {
         const ecosystem = url.searchParams.get("ecosystem");
 
         let query = `
-          SELECT p.name, p.description, p.ecosystem,
-                 v.version AS latest_version, v.entry_count, v.size_bytes
+          SELECT p.name, p.description, p.ecosystem, p.source_url,
+                 v.version AS latest_version, v.entry_count, v.size_bytes,
+                 (SELECT COUNT(*) FROM versions v3 WHERE v3.package = p.name) AS version_count
           FROM packages p
           LEFT JOIN versions v ON v.package = p.name
             AND v.rowid = (
