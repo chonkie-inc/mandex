@@ -73,6 +73,9 @@ const pkgName = Astro.params.name;
         html += '<div class="flex items-center gap-3">';
         html += '<h1 class="text-3xl md:text-4xl font-bold tracking-tight" style="color: var(--color-text);">' + pkg.name + '</h1>';
         html += '<span class="font-mono text-[11px] font-medium uppercase tracking-widest px-2 py-0.5 border" style="color: var(--color-text-secondary); border-color: var(--color-border); background-color: var(--color-background-secondary);">' + (pkg.ecosystem || '') + '</span>';
+        if (pkg.downloads > 0) {
+          html += '<span class="font-mono text-[11px] px-2 py-0.5" style="color: var(--color-text-tertiary);">' + pkg.downloads.toLocaleString() + ' pulls</span>';
+        }
         html += '</div>';
         if (pkg.description) {
           html += '<p class="text-base leading-relaxed max-w-xl" style="color: var(--color-text-secondary);">' + pkg.description + '</p>';
