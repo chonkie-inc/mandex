@@ -8,6 +8,8 @@
     "nest": "11.0.0",
     "playwright": "1.52.0",
     "pytest": "8.4.0",
+    "scikit-learn": "1.6.1",
+    "storybook": "8.5.0",
     "tanstack-query": "5.75.0",
     "tokio": "1.45.0",
     "uvicorn": "0.34.0",

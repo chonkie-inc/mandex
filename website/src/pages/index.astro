@@ -26,8 +26,8 @@ function formatSize(bytes: number): string {
 // Total versions across all packages
 const totalVersions = packages.reduce((sum, p) => sum + (p.version_count || 1), 0);
 
-// Fill 3x5 = 15 cells
-const gridPackages = packages.slice(0, 15);
+// Sort by downloads (most popular first), take top 15 for 3x5 grid
+const gridPackages = [...packages].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 15);
 ---
 
 <Layout title="mandex — documentation packages for AI agents">

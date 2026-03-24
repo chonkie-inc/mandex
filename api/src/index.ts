@@ -26,7 +26,7 @@ export default {
         const ecosystem = url.searchParams.get("ecosystem");
 
         let query = `
-          SELECT p.name, p.description, p.ecosystem, p.source_url,
+          SELECT p.name, p.description, p.ecosystem, p.source_url, p.downloads,
                  v.version AS latest_version, v.entry_count, v.size_bytes,
                  (SELECT COUNT(*) FROM versions v3 WHERE v3.package = p.name) AS version_count
           FROM packages p
@@ -62,7 +62,7 @@ export default {
         const name = packageMatch[1];
 
         const pkg = await env.DB.prepare(
-          "SELECT name, description, ecosystem, source_url FROM packages WHERE name = ?1"
+          "SELECT name, description, ecosystem, source_url, downloads FROM packages WHERE name = ?1"
         ).bind(name).first();
 
         if (!pkg) {
@@ -97,6 +97,11 @@ export default {
             headers: corsHeaders,
           });
         }
+
+        // Increment download counter
+        await env.DB.prepare(
+          "UPDATE packages SET downloads = downloads + 1 WHERE name = ?1"
+        ).bind(name).run();
 
         return Response.json(version, { headers: corsHeaders });
       }
