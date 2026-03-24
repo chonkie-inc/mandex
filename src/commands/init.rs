@@ -38,6 +38,56 @@ fn detect_codex() -> bool {
     dir_exists || which("codex")
 }
 
+fn detect_cline() -> bool {
+    // Cline is a VS Code extension — check for .cline or .clinerules
+    dirs::home_dir()
+        .map(|h| h.join(".cline").is_dir() || h.join(".clinerules").exists())
+        .unwrap_or(false)
+        || which("cline")
+}
+
+fn detect_copilot() -> bool {
+    // GitHub Copilot — check for .github/copilot-instructions.md or copilot CLI
+    std::path::Path::new(".github/copilot-instructions.md").exists() || which("github-copilot")
+}
+
+fn detect_openclaw() -> bool {
+    dirs::home_dir()
+        .map(|h| h.join(".openclaw").is_dir())
+        .unwrap_or(false)
+        || which("openclaw")
+}
+
+fn detect_amp() -> bool {
+    dirs::home_dir()
+        .map(|h| h.join(".amp").is_dir() || h.join(".ampcoderc").exists())
+        .unwrap_or(false)
+        || which("amp")
+}
+
+fn detect_antigravity() -> bool {
+    // Google Antigravity — check for GEMINI.md or antigravity config
+    std::path::Path::new("GEMINI.md").exists()
+        || dirs::home_dir()
+            .map(|h| h.join(".antigravity").is_dir())
+            .unwrap_or(false)
+}
+
+fn detect_gemini() -> bool {
+    // Gemini CLI
+    which("gemini")
+        || dirs::home_dir()
+            .map(|h| h.join(".gemini").is_dir())
+            .unwrap_or(false)
+}
+
+fn detect_clawdbot() -> bool {
+    dirs::home_dir()
+        .map(|h| h.join(".clawdbot").is_dir())
+        .unwrap_or(false)
+        || which("clawdbot")
+}
+
 fn which(cmd: &str) -> bool {
     std::process::Command::new("which")
         .arg(cmd)
@@ -186,6 +236,87 @@ Both arguments to `search` are positional — always quote the query: `mx search
     Ok(())
 }
 
+const MANDEX_INSTRUCTIONS: &str = r#"## mandex documentation lookup
+
+When you need documentation for a library, use the `mx` CLI tool instead of web search. Results are local, fast, version-pinned, and semantically reranked.
+
+- `mx search <package> "<query>"` — search within a package (use `-n 5` to limit)
+- `mx search "<query>"` — search across ALL installed packages (use `-n 3`)
+- `mx show <package> "<entry>"` — show full entry content
+- `mx sync` — install docs for all project dependencies
+- `mx pull <package>@<version>` — install docs for a specific package
+- `mx list` — show installed packages
+
+Always search before generating code that calls a library API. Both arguments to `search` are positional — always quote the query.
+"#;
+
+fn install_cline() -> Result<()> {
+    let cline_dir = home().join(".cline");
+    fs::create_dir_all(&cline_dir)?;
+    let rules_file = cline_dir.join("rules");
+    append_or_create(&rules_file, MANDEX_INSTRUCTIONS)?;
+    Ok(())
+}
+
+fn install_copilot() -> Result<()> {
+    let gh_dir = std::path::Path::new(".github");
+    fs::create_dir_all(gh_dir)?;
+    let instructions_file = gh_dir.join("copilot-instructions.md");
+    append_or_create(&instructions_file, MANDEX_INSTRUCTIONS)?;
+    Ok(())
+}
+
+fn install_openclaw() -> Result<()> {
+    let openclaw_dir = home().join(".openclaw");
+    fs::create_dir_all(&openclaw_dir)?;
+    let skills_dir = openclaw_dir.join("skills").join("mandex");
+    fs::create_dir_all(&skills_dir)?;
+    fs::write(skills_dir.join("SKILL.md"), MANDEX_INSTRUCTIONS)?;
+    Ok(())
+}
+
+fn install_amp() -> Result<()> {
+    // Amp uses AGENTS.md like Codex
+    let agents_file = std::path::Path::new("AGENTS.md").to_path_buf();
+    append_or_create(&agents_file, MANDEX_INSTRUCTIONS)?;
+    Ok(())
+}
+
+fn install_antigravity() -> Result<()> {
+    // Google Antigravity uses GEMINI.md or AGENTS.md
+    let gemini_file = std::path::Path::new("GEMINI.md").to_path_buf();
+    append_or_create(&gemini_file, MANDEX_INSTRUCTIONS)?;
+    Ok(())
+}
+
+fn install_gemini() -> Result<()> {
+    // Gemini CLI uses GEMINI.md
+    let gemini_file = std::path::Path::new("GEMINI.md").to_path_buf();
+    append_or_create(&gemini_file, MANDEX_INSTRUCTIONS)?;
+    Ok(())
+}
+
+fn install_clawdbot() -> Result<()> {
+    let clawdbot_dir = home().join(".clawdbot");
+    fs::create_dir_all(&clawdbot_dir)?;
+    let config_file = clawdbot_dir.join("instructions.md");
+    append_or_create(&config_file, MANDEX_INSTRUCTIONS)?;
+    Ok(())
+}
+
+/// Append mandex instructions to a file if not already present, or create it.
+fn append_or_create(path: &std::path::Path, content: &str) -> Result<()> {
+    if path.exists() {
+        let existing = fs::read_to_string(path)?;
+        if !existing.contains("mandex") {
+            fs::write(path, format!("{}\n\n{}", existing.trim_end(), content))?;
+        }
+    } else {
+        fs::write(path, content)?;
+    }
+    Ok(())
+}
+
 // ─── clack-style UI helpers ──────────────────────────────────────────────
 
 const DIM: &str = "\x1b[2m";
@@ -249,6 +380,36 @@ pub fn run(yes: bool) -> Result<()> {
             name: "Codex",
             detected: detect_codex(),
             install: install_codex,
+        },
+        Tool {
+            name: "Cline",
+            detected: detect_cline(),
+            install: install_cline,
+        },
+        Tool {
+            name: "Copilot",
+            detected: detect_copilot(),
+            install: install_copilot,
+        },
+        Tool {
+            name: "OpenClaw",
+            detected: detect_openclaw(),
+            install: install_openclaw,
+        },
+        Tool {
+            name: "Amp",
+            detected: detect_amp(),
+            install: install_amp,
+        },
+        Tool {
+            name: "Antigravity",
+            detected: detect_antigravity(),
+            install: install_antigravity,
+        },
+        Tool {
+            name: "Gemini",
+            detected: detect_gemini(),
+            install: install_gemini,
         },
     ];
 

@@ -979,7 +979,7 @@ checksum = "1670343e58806300d87950e3401e820b519b9384281bbabfb15e3636689ffd69"
 
 [[package]]
 name = "mandex"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "anyhow",
  "chunk",
