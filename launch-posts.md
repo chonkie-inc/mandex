@@ -4,31 +4,47 @@
 
 ## Twitter / X
 
-### Option A (punchy, dev-focused)
+### Option A (anti-cloud MCP angle)
 
-> AI agents hallucinate APIs because they don't have docs.
+> Stop paying for cloud MCP documentation services.
 >
-> We built mandex — local, version-pinned documentation packages for AI agents. One download, instant search, zero API calls.
+> mandex gives your AI agent the same docs — but local, version-pinned, and 25ms instead of 800ms.
 >
-> 100+ packages. 1,500+ versions. 25ms search. Free forever.
+> One download. Works offline. No API keys. No rate limits. No monthly bill.
 >
-> `curl -fsSL https://mandex.dev/install.sh | sh`
+> 100+ packages. 1,500+ versions. Free forever.
 >
-> Works with Claude Code, Cursor, Codex, Copilot, Windsurf, Cline, and more.
+> curl -fsSL https://mandex.dev/install.sh | sh
 >
 > https://mandex.dev
 
-### Option B (problem → solution thread starter)
+### Option B (comparison thread)
 
-> Every AI coding agent has the same problem: it guesses APIs instead of looking them up.
+> Cloud MCP docs services:
+> - $20/mo+
+> - 800ms+ latency per lookup
+> - Rate limited
+> - Requires internet
+> - Version? Whatever they have cached
 >
-> Web search is slow. Context windows are limited. RAG is overkill for "what are the params to FastAPI's Depends()?"
+> mandex:
+> - Free
+> - 25ms search (local SQLite)
+> - No rate limits
+> - Works offline
+> - Exact version you're using
 >
-> So we made mandex — docs as packages. Pull once, search locally forever. 25ms avg latency. Works offline.
+> One download per package. Local forever.
 >
-> `mx pull fastapi && mx search fastapi "dependency injection"`
+> 100+ packages, 1,500+ versions. Works with Claude Code, Cursor, Codex, Copilot, and 6 more.
 >
-> Open source. Free. 10 agents supported out of the box.
+> https://mandex.dev
+
+### Option C (short and sharp)
+
+> Your AI agent doesn't need a cloud service to read docs.
+>
+> mandex — pull once, search locally forever. 25ms. Offline. Version-pinned. Free.
 >
 > https://mandex.dev
 
