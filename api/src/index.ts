@@ -1,6 +1,19 @@
 interface Env {
   DB: D1Database;
   R2: R2Bucket;
+  PUBLISH_KEY: string;
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  const encoder = new TextEncoder();
+  const bufA = encoder.encode(a);
+  const bufB = encoder.encode(b);
+  let result = 0;
+  for (let i = 0; i < bufA.length; i++) {
+    result |= bufA[i] ^ bufB[i];
+  }
+  return result === 0;
 }
 
 export default {
@@ -11,8 +24,8 @@ export default {
     // CORS headers
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     };
 
     if (request.method === "OPTIONS") {
@@ -112,6 +125,71 @@ export default {
           "SELECT COUNT(*) as total_versions FROM versions"
         ).first();
         return Response.json(result, { headers: corsHeaders });
+      }
+
+      // POST /packages/:name/:version — publish a package
+      const publishMatch = path.match(/^\/packages\/([^/]+)\/([^/]+)$/);
+      if (publishMatch && request.method === "POST") {
+        const name = publishMatch[1];
+        const version = publishMatch[2];
+
+        // Auth check
+        const authHeader = request.headers.get("Authorization");
+        const expected = `Bearer ${env.PUBLISH_KEY}`;
+        if (!authHeader || !timingSafeEqual(authHeader, expected)) {
+          return Response.json({ error: "Unauthorized" }, {
+            status: 401,
+            headers: corsHeaders,
+          });
+        }
+
+        // Read the .mandex file from request body
+        const body = await request.arrayBuffer();
+        if (body.byteLength === 0) {
+          return Response.json({ error: "Empty body" }, {
+            status: 400,
+            headers: corsHeaders,
+          });
+        }
+
+        // Parse metadata from query params
+        const ecosystem = url.searchParams.get("ecosystem") || "";
+        const description = url.searchParams.get("description") || "";
+        const sourceUrl = url.searchParams.get("source_url") || "";
+        const entryCount = parseInt(url.searchParams.get("entry_count") || "0", 10);
+
+        // Compute sort_key from semver: major * 1_000_000 + minor * 1_000 + patch
+        const versionParts = version.match(/^(\d+)\.(\d+)\.(\d+)/);
+        const sortKey = versionParts
+          ? parseInt(versionParts[1]) * 1_000_000 + parseInt(versionParts[2]) * 1_000 + parseInt(versionParts[3])
+          : 0;
+
+        // Upload to R2
+        await env.R2.put(`v1/${name}/${version}.mandex`, body);
+
+        // Upsert package in D1
+        await env.DB.prepare(
+          `INSERT INTO packages (name, description, ecosystem, source_url, downloads)
+           VALUES (?1, ?2, ?3, ?4, 0)
+           ON CONFLICT(name) DO UPDATE SET
+             description = CASE WHEN ?2 != '' THEN ?2 ELSE packages.description END,
+             ecosystem = CASE WHEN ?3 != '' THEN ?3 ELSE packages.ecosystem END,
+             source_url = CASE WHEN ?4 != '' THEN ?4 ELSE packages.source_url END`
+        ).bind(name, description, ecosystem, sourceUrl).run();
+
+        // Insert or replace version
+        await env.DB.prepare(
+          `INSERT OR REPLACE INTO versions (package, version, entry_count, size_bytes, sort_key)
+           VALUES (?1, ?2, ?3, ?4, ?5)`
+        ).bind(name, version, entryCount, body.byteLength, sortKey).run();
+
+        return Response.json({
+          package: name,
+          version,
+          entry_count: entryCount,
+          size_bytes: body.byteLength,
+          sort_key: sortKey,
+        }, { status: 201, headers: corsHeaders });
       }
 
       return Response.json({ error: "Not found" }, {

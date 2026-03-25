@@ -4,9 +4,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { marked } from 'marked';
 
-// Read post.md from project root
-const postPath = path.resolve(process.cwd(), '../post.md');
-const markdown = fs.readFileSync(postPath, 'utf-8');
+// Read README.md from project root
+const postPath = path.resolve(process.cwd(), '../README.md');
+let markdown = '';
+try {
+  markdown = fs.readFileSync(postPath, 'utf-8');
+} catch (e) {
+  markdown = '# About\n\nContent coming soon.';
+}
 
 // Extract h2 and h3 headings for TOC
 const tocEntries: { text: string; slug: string; level: number }[] = [];

@@ -1,22 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-
-export async function getStaticPaths() {
-  let packages: { name: string }[] = [];
-  try {
-    const res = await fetch('https://api.mandex.dev/packages');
-    packages = await res.json();
-  } catch (e) {}
-
-  return packages.map((pkg) => ({
-    params: { name: pkg.name },
-  }));
-}
-
-const pkgName = Astro.params.name;
 ---
 
-<Layout title={`${pkgName} — mandex`} description="">
+<Layout title="Package — mandex" description="">
   <div class="flex-1 flex flex-col min-h-0 overflow-y-auto">
     <!-- Back link -->
     <div class="shrink-0 px-5 py-2.5 border-b" style="border-color: var(--color-border);">
@@ -41,8 +27,8 @@ const pkgName = Astro.params.name;
 
   <script is:inline>
     (function() {
-      var pathParts = window.location.pathname.split('/');
-      var pkgName = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
+      var pathParts = window.location.pathname.replace(/\/+$/, '').split('/');
+      var pkgName = pathParts[pathParts.length - 1];
       var contentEl = document.getElementById('pkg-content');
       var loadingEl = document.getElementById('loading-msg');
 
@@ -63,6 +49,8 @@ const pkgName = Astro.params.name;
           if (loadingEl) loadingEl.textContent = 'Package not found.';
           return;
         }
+
+        document.title = pkg.name + ' \u2014 mandex';
 
         var versions = pkg.versions || [];
         var latest = versions.length > 0 ? versions[0].version : null;

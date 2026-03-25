@@ -30,6 +30,8 @@ target
 .wrangler/
 node_modules/
 models/
+.env.local
+.env*.local
 
 # Website
 website/node_modules/
