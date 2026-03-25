@@ -25,6 +25,10 @@ target
 
 /target
 
+# Local state
+.mandex/
+.wrangler/
+
 # Website
 website/node_modules/
 website/dist/
