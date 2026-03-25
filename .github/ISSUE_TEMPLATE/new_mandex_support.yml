@@ -1,0 +1,48 @@
+name: New Mandex Support
+description: Request support for a new library/package in Mandex
+labels: ["new-mandex"]
+assignees:
+  - chonknick
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for requesting a new library! Please fill out the details below.
+  - type: input
+    id: package-name
+    attributes:
+      label: Package Name
+      description: The name of the library/package you'd like added
+      placeholder: e.g., tokio, serde, numpy
+    validations:
+      required: true
+  - type: input
+    id: package-registry
+    attributes:
+      label: Package Registry
+      description: Where is this package published?
+      placeholder: e.g., crates.io, PyPI, npm
+    validations:
+      required: true
+  - type: input
+    id: package-version
+    attributes:
+      label: Version(s)
+      description: Which version(s) should be supported?
+      placeholder: e.g., latest, 1.0+, 0.5.x
+    validations:
+      required: false
+  - type: textarea
+    id: why
+    attributes:
+      label: Why should this be added?
+      description: Brief explanation of why this library would be useful in Mandex
+    validations:
+      required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other information (links to docs, related packages, etc.)
+    validations:
+      required: false
