@@ -28,6 +28,7 @@ target
 # Local state
 .mandex/
 .wrangler/
+node_modules/
 
 # Website
 website/node_modules/
