@@ -29,6 +29,7 @@ target
 .mandex/
 .wrangler/
 node_modules/
+models/
 
 # Website
 website/node_modules/
